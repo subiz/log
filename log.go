@@ -33,17 +33,14 @@ func Err(accid string, err error, v ...interface{}) error {
 	v = append([]interface{}{err.Error(), getStack(2)}, v...)
 	m := fmt.Sprintf(format, v...)
 
-	tag := service + "." + accid
-	_, err = w.writeAndRetry(tag, LOG_ERR, m)
+	_, err = w.writeAndRetry(service, accid, LOG_ERR, m)
 	return err
 }
 
 func Info(accid string, v ...interface{}) error {
 	format := strings.Repeat("%v ", len(v))
 	m := fmt.Sprintf(format, v...)
-	// extract accid from context
-	tag := service + "." + accid
-	_, err := w.writeAndRetry(tag, LOG_INFO, m)
+	_, err := w.writeAndRetry(service, accid, LOG_INFO, m)
 	return err
 }
 

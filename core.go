@@ -88,7 +88,7 @@ type Writer struct {
 // return a type that satisfies this interface and simply calls the C
 // library syslog function.
 type serverConn interface {
-	writeString(p Priority, hostname, tag, s, nl string) error
+	writeString(p Priority, hostname, service, accid, s, nl string) error
 	close() error
 }
 
@@ -140,33 +140,33 @@ func (w *Writer) Close() error {
 	return nil
 }
 
-func (w *Writer) writeAndRetry(tag string, p Priority, s string) (int, error) {
+func (w *Writer) writeAndRetry(service, accid string, p Priority, s string) (int, error) {
 	pr := (w.priority & facilityMask) | (p & severityMask)
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	if w.conn != nil {
-		if n, err := w.write(tag, pr, s); err == nil {
+		if n, err := w.write(service, accid, pr, s); err == nil {
 			return n, err
 		}
 	}
 	if err := w.connect(); err != nil {
 		return 0, err
 	}
-	return w.write(tag, pr, s)
+	return w.write(service, accid, pr, s)
 }
 
 // write generates and writes a syslog formatted string. The
 // format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
-func (w *Writer) write(tag string, p Priority, msg string) (int, error) {
+func (w *Writer) write(service, accid string, p Priority, msg string) (int, error) {
 	// ensure it ends in a \n
 	nl := ""
 	if !strings.HasSuffix(msg, "\n") {
 		nl = "\n"
 	}
 
-	err := w.conn.writeString(p, w.hostname, tag, msg, nl)
+	err := w.conn.writeString(p, w.hostname, service, accid, msg, nl)
 	if err != nil {
 		return 0, err
 	}
@@ -176,25 +176,25 @@ func (w *Writer) write(tag string, p Priority, msg string) (int, error) {
 	return len(msg), nil
 }
 
-func (n *netConn) writeString(p Priority, hostname, tag, msg, nl string) error {
+func (n *netConn) writeString(p Priority, hostname, service, accid, msg, nl string) error {
 	// log to console
 	ospid, caller := os.Getpid(), getCaller()
 	timestamp := time.Now().Format(time.Stamp)
-	fmt.Printf("<%d>%s %s: %s| %s %s", p, timestamp, tag, caller, msg, nl)
+	fmt.Printf("<%d>%s %s %s[1]: %s| %s%s", p, timestamp, hostname+"."+service, accid, caller, msg, nl)
 
 	if n.local {
 		// Compared to the network form below, the changes are:
 		//	1. Use time.Stamp instead of time.RFC3339.
 		//	2. Drop the hostname field from the Fprintf.
 		timestamp := time.Now().Format(time.Stamp)
-		_, err := fmt.Fprintf(n.conn, "<%d>%s %s[%d]: %s| %s %s",
+		_, err := fmt.Fprintf(n.conn, "<%d>%s %s[%d]: %s| %s%s",
 			p, timestamp,
-			tag, ospid, caller, msg, nl)
+			accid, ospid, caller, msg, nl)
 		return err
 	}
 	_, err := fmt.Fprintf(n.conn, "<%d>%s %s %s[%d]: %s| %s%s",
-		p, timestamp, hostname,
-		tag, ospid, caller, msg, nl)
+		p, timestamp, hostname+"."+service,
+		accid, ospid, caller, msg, nl)
 	return err
 }
 

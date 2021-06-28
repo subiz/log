@@ -75,6 +75,7 @@ const (
 type Writer struct {
 	priority Priority
 	hostname string
+	service  string
 	network  string
 	raddr    string
 
@@ -125,26 +126,26 @@ func (w *Writer) Close() error {
 	return nil
 }
 
-func (w *Writer) writeAndRetry(service, accid string, p Priority, s string) (int, error) {
+func (w *Writer) writeAndRetry(accid string, p Priority, s string) (int, error) {
 	pr := (w.priority & facilityMask) | (p & severityMask)
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	if w.conn != nil {
-		if n, err := w.write(service, accid, pr, s); err == nil {
+		if n, err := w.write(accid, pr, s); err == nil {
 			return n, err
 		}
 	}
 	if err := w.connect(); err != nil {
 		return 0, err
 	}
-	return w.write(service, accid, pr, s)
+	return w.write(accid, pr, s)
 }
 
 // write generates and writes a syslog formatted string. The
 // format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
-func (w *Writer) write(service, accid string, p Priority, msg string) (int, error) {
+func (w *Writer) write(accid string, p Priority, msg string) (int, error) {
 	// ensure it ends in a \n
 	nl := ""
 	if !strings.HasSuffix(msg, "\n") {
@@ -155,7 +156,7 @@ func (w *Writer) write(service, accid string, p Priority, msg string) (int, erro
 	ospid, caller := os.Getpid(), getCaller()
 	timestamp := time.Now().Format(time.Stamp)
 	fmt.Printf("<%d>%s %s %s[1]: %s %s| %s%s",
-		p, timestamp, service, accid, w.hostname, caller, msg, nl)
+		p, timestamp, w.service, accid, w.hostname, caller, msg, nl)
 
 	if w.local {
 		// Compared to the network form below, the changes are:
@@ -166,7 +167,7 @@ func (w *Writer) write(service, accid string, p Priority, msg string) (int, erro
 			p, timestamp, accid, ospid, w.hostname, caller, msg, nl)
 	}
 	return fmt.Fprintf(w.conn, "<%d>%s %s %s[%d]: %s %s| %s%s",
-		p, timestamp, service, accid, ospid, w.hostname, caller, msg, nl)
+		p, timestamp, w.service, accid, ospid, w.hostname, caller, msg, nl)
 
 	// Note: return the length of the input, not the number of
 	// bytes printed by Fprintf, because this must behave like

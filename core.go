@@ -7,6 +7,7 @@
 package log
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -77,22 +78,7 @@ type Writer struct {
 	network  string
 	raddr    string
 
-	mu   sync.Mutex // guards conn
-	conn serverConn
-}
-
-// This interface and the separate syslog_unix.go file exist for
-// Solaris support as implemented by gccgo. On Solaris you cannot
-// simply open a TCP connection to the syslog daemon. The gccgo
-// sources have a syslog_solaris.go file that implements unixSyslog to
-// return a type that satisfies this interface and simply calls the C
-// library syslog function.
-type serverConn interface {
-	writeString(p Priority, hostname, service, accid, s, nl string) error
-	close() error
-}
-
-type netConn struct {
+	mu    sync.Mutex // guards conn
 	local bool
 	conn  net.Conn
 }
@@ -102,12 +88,13 @@ type netConn struct {
 func (w *Writer) connect() (err error) {
 	if w.conn != nil {
 		// ignore err from close, it makes sense to continue anyway
-		w.conn.close()
+		w.conn.Close()
 		w.conn = nil
 	}
 
 	if w.network == "" {
 		w.conn, err = unixSyslog()
+		w.local = true
 		if w.hostname == "" {
 			w.hostname = "localhost"
 		}
@@ -115,10 +102,8 @@ func (w *Writer) connect() (err error) {
 		var c net.Conn
 		c, err = net.Dial(w.network, w.raddr)
 		if err == nil {
-			w.conn = &netConn{
-				conn:  c,
-				local: w.network == "unixgram" || w.network == "unix",
-			}
+			w.conn = c
+			w.local = w.network == "unixgram" || w.network == "unix"
 			if w.hostname == "" {
 				w.hostname = c.LocalAddr().String()
 			}
@@ -133,7 +118,7 @@ func (w *Writer) Close() error {
 	defer w.mu.Unlock()
 
 	if w.conn != nil {
-		err := w.conn.close()
+		err := w.conn.Close()
 		w.conn = nil
 		return err
 	}
@@ -166,38 +151,42 @@ func (w *Writer) write(service, accid string, p Priority, msg string) (int, erro
 		nl = "\n"
 	}
 
-	err := w.conn.writeString(p, w.hostname, service, accid, msg, nl)
-	if err != nil {
-		return 0, err
+	// log to console
+	ospid, caller := os.Getpid(), getCaller()
+	timestamp := time.Now().Format(time.Stamp)
+	fmt.Printf("<%d>%s %s %s[1]: %s %s| %s%s",
+		p, timestamp, service, accid, w.hostname, caller, msg, nl)
+
+	if w.local {
+		// Compared to the network form below, the changes are:
+		//	1. Use time.Stamp instead of time.RFC3339.
+		//	2. Drop the hostname field from the Fprintf.
+		timestamp := time.Now().Format(time.Stamp)
+		return fmt.Fprintf(w.conn, "<%d>%s %s[%d]: %s %s| %s%s",
+			p, timestamp, accid, ospid, w.hostname, caller, msg, nl)
 	}
+	return fmt.Fprintf(w.conn, "<%d>%s %s %s[%d]: %s %s| %s%s",
+		p, timestamp, service, accid, ospid, w.hostname, caller, msg, nl)
+
 	// Note: return the length of the input, not the number of
 	// bytes printed by Fprintf, because this must behave like
 	// an io.Writer.
 	return len(msg), nil
 }
 
-func (n *netConn) writeString(p Priority, hostname, service, accid, msg, nl string) error {
-	// log to console
-	ospid, caller := os.Getpid(), getCaller()
-	timestamp := time.Now().Format(time.Stamp)
-	fmt.Printf("<%d>%s %s %s[1]: %s| %s%s", p, timestamp, hostname+"."+service, accid, caller, msg, nl)
+// unixSyslog opens a connection to the syslog daemon running on the
+// local machine using a Unix domain socket.
 
-	if n.local {
-		// Compared to the network form below, the changes are:
-		//	1. Use time.Stamp instead of time.RFC3339.
-		//	2. Drop the hostname field from the Fprintf.
-		timestamp := time.Now().Format(time.Stamp)
-		_, err := fmt.Fprintf(n.conn, "<%d>%s %s[%d]: %s| %s%s",
-			p, timestamp,
-			accid, ospid, caller, msg, nl)
-		return err
+func unixSyslog() (conn net.Conn, err error) {
+	logTypes := []string{"unixgram", "unix"}
+	logPaths := []string{"/dev/log", "/var/run/syslog", "/var/run/log"}
+	for _, network := range logTypes {
+		for _, path := range logPaths {
+			conn, err := net.Dial(network, path)
+			if err == nil {
+				return conn, nil
+			}
+		}
 	}
-	_, err := fmt.Fprintf(n.conn, "<%d>%s %s %s[%d]: %s| %s%s",
-		p, timestamp, hostname+"."+service,
-		accid, ospid, caller, msg, nl)
-	return err
-}
-
-func (n *netConn) close() error {
-	return n.conn.Close()
+	return nil, errors.New("Unix syslog delivery error")
 }

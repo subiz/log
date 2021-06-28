@@ -79,9 +79,8 @@ type Writer struct {
 	network  string
 	raddr    string
 
-	mu    sync.Mutex // guards conn
-	local bool
-	conn  net.Conn
+	mu   sync.Mutex // guards conn
+	conn net.Conn
 }
 
 // connect makes a connection to the syslog server.
@@ -95,7 +94,6 @@ func (w *Writer) connect() (err error) {
 
 	if w.network == "" {
 		w.conn, err = unixSyslog()
-		w.local = true
 		if w.hostname == "" {
 			w.hostname = "localhost"
 		}
@@ -104,7 +102,6 @@ func (w *Writer) connect() (err error) {
 		c, err = net.Dial(w.network, w.raddr)
 		if err == nil {
 			w.conn = c
-			w.local = w.network == "unixgram" || w.network == "unix"
 			if w.hostname == "" {
 				w.hostname = c.LocalAddr().String()
 			}
@@ -152,27 +149,14 @@ func (w *Writer) write(accid string, p Priority, msg string) (int, error) {
 		nl = "\n"
 	}
 
-	// log to console
+	// log to console first
 	ospid, caller := os.Getpid(), getCaller()
 	timestamp := time.Now().Format(time.Stamp)
 	fmt.Printf("<%d>%s %s %s[1]: %s %s| %s%s",
 		p, timestamp, w.service, accid, w.hostname, caller, msg, nl)
 
-	if w.local {
-		// Compared to the network form below, the changes are:
-		//	1. Use time.Stamp instead of time.RFC3339.
-		//	2. Drop the hostname field from the Fprintf.
-		timestamp := time.Now().Format(time.Stamp)
-		return fmt.Fprintf(w.conn, "<%d>%s %s[%d]: %s %s| %s%s",
-			p, timestamp, accid, ospid, w.hostname, caller, msg, nl)
-	}
 	return fmt.Fprintf(w.conn, "<%d>%s %s %s[%d]: %s %s| %s%s",
 		p, timestamp, w.service, accid, ospid, w.hostname, caller, msg, nl)
-
-	// Note: return the length of the input, not the number of
-	// bytes printed by Fprintf, because this must behave like
-	// an io.Writer.
-	return len(msg), nil
 }
 
 // unixSyslog opens a connection to the syslog daemon running on the

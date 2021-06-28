@@ -9,7 +9,7 @@ import (
 // find outside caller
 func getCaller() string {
 	// fast lookup
-	_, currentFile, currentLine, _ := runtime.Caller(5)
+	_, currentFile, currentLine, _ := runtime.Caller(4)
 	return chopPath(currentFile) + " " + strconv.Itoa(currentLine)
 
 	for i := 0; i <= 20; i++ {

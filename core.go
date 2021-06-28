@@ -149,14 +149,14 @@ func (w *Writer) write(accid string, p Priority, msg string) (int, error) {
 		nl = "\n"
 	}
 
-	// log to console first
-	ospid, caller := os.Getpid(), getCaller()
+	// log to stdout first
+	caller := getCaller()
 	timestamp := time.Now().Format(time.Stamp)
-	fmt.Printf("<%d>%s %s %s[1]: %s %s| %s%s",
-		p, timestamp, w.service, accid, w.hostname, caller, msg, nl)
+	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
+		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
-	return fmt.Fprintf(w.conn, "<%d>%s %s %s[%d]: %s %s| %s%s",
-		p, timestamp, w.service, accid, ospid, w.hostname, caller, msg, nl)
+	return fmt.Fprintf(w.conn, "<%d>%s %s[%s]: %s| %s%s",
+		p, timestamp, accid, w.service, caller, msg, nl)
 }
 
 // unixSyslog opens a connection to the syslog daemon running on the

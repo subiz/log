@@ -11,26 +11,14 @@ func getCaller() string {
 	// fast lookup
 	_, currentFile, currentLine, _ := runtime.Caller(4)
 	return chopPath(currentFile) + " " + strconv.Itoa(currentLine)
-
-	for i := 0; i <= 20; i++ {
-		_, file, line, _ := runtime.Caller(i)
-		println(file, line)
-		//if file != currentFile {
-		//return chopPath(file) + ":" + strconv.Itoa(line)
-		//}
-	}
-
-	return chopPath(currentFile) + " " + strconv.Itoa(currentLine)
 }
 
 var defaultPaths = []string{
-	"/src/bitbucket.org/subiz/",
 	"/src/git.subiz.net/",
 	"/src/github.com/subiz/",
 }
 
 func chopPath(path string) string {
-
 	for _, p := range defaultPaths {
 		i := strings.LastIndex(path, p)
 		if i >= 0 {
@@ -96,7 +84,6 @@ func getStack(skip int) string {
 			file = trimOutPrefix(file, "/git.subiz.net/")
 			file = trimOutPrefix(file, "/github.com/")
 			file = trimOutPrefix(file, "/gitlab.com/")
-			file = trimOutPrefix(file, "/bitbucket.org/")
 			file = trimOutPrefix(file, "/gopkg.in/")
 		}
 

@@ -123,26 +123,12 @@ func (w *Writer) Close() error {
 	return nil
 }
 
-func (w *Writer) writeAndRetry(accid string, p Priority, s string) (int, error) {
-	pr := (w.priority & facilityMask) | (p & severityMask)
+func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error) {
+	p = (w.priority & facilityMask) | (p & severityMask)
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	if w.conn != nil {
-		if n, err := w.write(accid, pr, s); err == nil {
-			return n, err
-		}
-	}
-	if err := w.connect(); err != nil {
-		return 0, err
-	}
-	return w.write(accid, pr, s)
-}
-
-// write generates and writes a syslog formatted string. The
-// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
-func (w *Writer) write(accid string, p Priority, msg string) (int, error) {
 	// ensure it ends in a \n
 	nl := ""
 	if !strings.HasSuffix(msg, "\n") {
@@ -155,6 +141,14 @@ func (w *Writer) write(accid string, p Priority, msg string) (int, error) {
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
 		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
+	if w.conn == nil {
+		if err := w.connect(); err != nil {
+			return 0, err
+		}
+	}
+
+	// write generates and writes a syslog formatted string. The
+	// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
 	return fmt.Fprintf(w.conn, "<%d>%s %s[%s]: %s| %s%s",
 		p, timestamp, accid, w.service, caller, msg, nl)
 }

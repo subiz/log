@@ -39,6 +39,10 @@ func Err(accid string, err error, v ...interface{}) error {
 		return nil
 	}
 
+	if accid == "" {
+		accid = "subiz"
+	}
+
 	format := strings.Repeat("%v ", len(v))
 	format = "ERR %s [stack %s] " + format
 	v = append([]interface{}{err.Error(), getStack(1)}, v...)

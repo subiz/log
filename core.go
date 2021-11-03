@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build !windows && !plan9
 // +build !windows,!plan9
 
 package log
@@ -124,6 +125,9 @@ func (w *Writer) Close() error {
 }
 
 func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error) {
+	if accid == "" {
+		accid = "subiz"
+	}
 	p = (w.priority & facilityMask) | (p & severityMask)
 
 	w.mu.Lock()

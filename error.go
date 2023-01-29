@@ -204,6 +204,25 @@ const E_data_corrupted E = 5028
 const E_invalid_google_auth_response E = 5071
 const E_pdf_generate_failed E = 5072
 
+func ErrField(ctx context.Context, accid string, err error, required_fields []string, internal_message string, fields ...M) error {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["required_fields"] = required_fields
+	return NewError(ctx, err, E_invalid_field, internal_message, field)
+}
+
+func ErrServer(ctx context.Context, accid string, err error, internal_message string, fields ...M) error {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	return NewError(ctx, err, E_undefined, internal_message, field)
+}
+
 func ErrDatabase(ctx context.Context, accid string, err error, query string, internal_message string, fields ...M) error {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -282,7 +301,14 @@ func NewError(ctx context.Context, err error, code E, internal_message string, f
 		err = fmt.Errorf("%w %s", err, internal_message)
 	}
 	if sentryDsn != "" {
-		return NewSentryErr(ctx, err, code, internal_message, field)
+		accid := ""
+		if field != nil {
+			accidi := field["account_id"]
+			if accidi != nil {
+				accid, _ = accidi.(string)
+			}
+		}
+		return NewSentryErr(ctx, accid, err, code, internal_message, field)
 	}
 	return &header.Error{}
 	// log host name

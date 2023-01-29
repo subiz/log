@@ -41,7 +41,7 @@ func init() {
 	}
 }
 
-func NewSentryErr(ctx context.Context, err error, code E, internal_message string, field M) error {
+func NewSentryErr(ctx context.Context, userid string, err error, code E, internal_message string, field M) error {
 	hub := sentry.CurrentHub()
 	client, scope := hub.Client(), hub.Scope()
 	if client == nil || scope == nil {
@@ -49,6 +49,9 @@ func NewSentryErr(ctx context.Context, err error, code E, internal_message strin
 	}
 	event := sentry.NewEvent()
 	event.Level = sentry.LevelError
+	if userid != "" {
+		event.User = sentry.User{ID: userid}
+	}
 
 	const maxErrorDepth = 10
 	for i := 0; i < maxErrorDepth && err != nil; i++ {

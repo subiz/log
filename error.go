@@ -263,7 +263,10 @@ func ErrUserIsBanned(ctx context.Context, accid, userid string, internal_message
 }
 
 func NewError(ctx context.Context, err error, code E, internal_message string, field M) error {
-	return header.Error{}
+	if sentryDsn != "" {
+		return NewSentryErr(ctx, err, code, internal_message, field)
+	}
+	return &header.Error{}
 	// log host name
 	// log ip
 }

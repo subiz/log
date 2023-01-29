@@ -2,7 +2,10 @@ module github.com/subiz/log
 
 go 1.18
 
-require github.com/subiz/header v1.10.65
+require (
+	github.com/getsentry/sentry-go v0.17.0
+	github.com/subiz/header v1.10.65
+)
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect

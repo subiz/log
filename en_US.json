@@ -1,0 +1,5 @@
+{
+  "database_error": "Something wrong, please try again later",
+  "user_is_banned": "This user have been banned, please unban this user to continue",
+  "agent_is_inactived": "This user have been banned, please unban this user to continue"
+}

@@ -2,6 +2,8 @@ package log
 
 import (
 	"context"
+	"errors"
+	"fmt"
 
 	"github.com/subiz/header"
 )
@@ -262,7 +264,23 @@ func ErrUserIsBanned(ctx context.Context, accid, userid string, internal_message
 	return NewError(ctx, nil, E_user_is_banned, internal_message, field)
 }
 
+func ErrNotFound(ctx context.Context, accid, typ, hint string, internal_message string, fields ...M) error {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["type"] = typ
+	field["hint"] = hint
+	return NewError(ctx, nil, E_resource_not_found, internal_message, field)
+}
+
 func NewError(ctx context.Context, err error, code E, internal_message string, field M) error {
+	if err == nil {
+		err = errors.New(internal_message)
+	} else {
+		err = fmt.Errorf("%w %s", err, internal_message)
+	}
 	if sentryDsn != "" {
 		return NewSentryErr(ctx, err, code, internal_message, field)
 	}

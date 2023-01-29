@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"runtime"
+	"strings"
 
 	"github.com/getsentry/sentry-go"
 )
@@ -27,6 +29,10 @@ func init() {
 			// Useful when getting started or trying to figure something out.
 			Debug:       true,
 			Environment: sentryEnv,
+			BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+				event.Exception[0].Type = event.Exception[0].Value
+				return event
+			},
 		})
 		if err != nil {
 			fmt.Println("SENTRY ERR", err)
@@ -49,7 +55,7 @@ func NewSentryErr(ctx context.Context, err error, code E, internal_message strin
 		event.Exception = append(event.Exception, sentry.Exception{
 			Value:      err.Error(),
 			Type:       reflect.TypeOf(err).String(),
-			Stacktrace: sentry.ExtractStacktrace(err),
+			Stacktrace: ExtractStacktrace(err),
 		})
 		switch previous := err.(type) {
 		case interface{ Unwrap() error }:
@@ -72,7 +78,11 @@ func NewSentryErr(ctx context.Context, err error, code E, internal_message strin
 	// event.Exception should be sorted such that the most recent error is last.
 	reverseSentry(event.Exception)
 	event.Environment = sentryEnv
-	event.Fingerprint = []string{internal_message}
+	fingerprint := strings.Split(internal_message, " ")[0]
+	if fingerprint != "" {
+		event.Fingerprint = []string{fingerprint}
+	}
+
 	for key, value := range field {
 		valueb, _ := json.Marshal(value)
 		event.Tags[key] = string(valueb)
@@ -88,4 +98,51 @@ func reverseSentry(a []sentry.Exception) {
 		opp := len(a) - 1 - i
 		a[i], a[opp] = a[opp], a[i]
 	}
+}
+
+// ExtractStacktrace creates a new Stacktrace based on the given error.
+func ExtractStacktrace(err error) *sentry.Stacktrace {
+	pcs := make([]uintptr, 100)
+	n := runtime.Callers(1, pcs)
+
+	if n == 0 {
+		return &sentry.Stacktrace{}
+	}
+
+	var frames = make([]sentry.Frame, 0, len(pcs))
+	callersFrames := runtime.CallersFrames(pcs)
+
+	for {
+		callerFrame, more := callersFrames.Next()
+		frames = append(frames, sentry.NewFrame(callerFrame))
+		if !more {
+			break
+		}
+	}
+
+	// reverse
+	for i, j := 0, len(frames)-1; i < j; i, j = i+1, j-1 {
+		frames[i], frames[j] = frames[j], frames[i]
+	}
+	// reuse
+	filteredFrames := frames[:0]
+
+	for _, frame := range frames {
+		// Skip Go internal frames.
+		if frame.Module == "runtime" || frame.Module == "testing" {
+			continue
+		}
+		// Skip Sentry internal frames, except for frames in _test packages (for
+		// testing).
+		if strings.Contains(frame.Module, "github.com/subiz/log") {
+			continue
+		}
+		if strings.HasPrefix(frame.Module, "github.com/getsentry/sentry-go") &&
+			!strings.HasSuffix(frame.Module, "_test") {
+			continue
+		}
+		filteredFrames = append(filteredFrames, frame)
+	}
+
+	return &sentry.Stacktrace{Frames: filteredFrames}
 }

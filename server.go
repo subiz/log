@@ -13,11 +13,18 @@ import (
 	"github.com/subiz/header"
 )
 
-var serverEnv string
+var errServerHost string
+var errServerDomain string
+var errServerSecret string
 var hostname string
 
 func init() {
-	serverEnv = os.Getenv("LOG_SERVER_ENV")
+	errServerHost = os.Getenv("ERROR_SERVER_HOST")
+	if errServerHost == "" {
+		errServerHost = "https://track.sbz.vn"
+	}
+	errServerDomain = os.Getenv("ERROR_SERVER_DOMAIN")
+	errServerSecret = os.Getenv("ERROR_SERVER_SECRET")
 	hostname, _ = os.Hostname()
 	go flush()
 }
@@ -29,7 +36,6 @@ var metricmapcount = make(map[int64]int)
 func flush() {
 	// flush periodically in 10s
 	for {
-		start := time.Now()
 		metricmaplock.Lock()
 		metricmapcopy := make(map[int64]*header.Event)
 		for k, v := range metricmap {
@@ -47,7 +53,10 @@ func flush() {
 		for metric, theerr := range metricmapcopy {
 			count := metricmapcountcopy[metric]
 			b, _ := json.Marshal(theerr)
-			resp, err := http.Post("https://"+serverEnv+"/collects/?type=counter&secret=iamnobot&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))
+			resp, err := http.Post(errServerHost+"/collects/?type=counter&secret="+errServerSecret+
+				"&domain="+errServerDomain+
+				"&metric="+strconv.Itoa(int(metric))+
+				"&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))
 			if err != nil {
 				fmt.Println("METRIC ERR", err.Error())
 				continue
@@ -60,10 +69,6 @@ func flush() {
 					resp.Body.Close()
 				}
 			}
-		}
-
-		if len(metricmapcopy) > 0 {
-			fmt.Println("METRIC FLUSHED:", len(metricmapcopy), "in", time.Since(start))
 		}
 		time.Sleep(10 * time.Second)
 	}

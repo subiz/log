@@ -406,7 +406,7 @@ func NewError(ctx context.Context, err error, field M, codes ...E) error {
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
 
-	if serverEnv != "" {
+	if errServerDomain != "" {
 		// hostname
 		metricmaplock.Lock()
 		metricmap[number] = &header.Event{AccountId: outerr.XHidden["account_id"], Created: time.Now().UnixMilli(), UserId: outerr.XHidden["user_id"], Data: &header.Data{Error: outerr}}

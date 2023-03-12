@@ -11,8 +11,8 @@ github.com/pingcap/errors v0.11.4 h1:lFuQV/oaUMGcD2tqt+01ROSmJs75VG1ToEOkZIZ4nE4
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
-github.com/subiz/header v1.11.22 h1:2lbE9b6dEHFA9Ar5tPK8l/Ypx5yObqVo6N13yr3BmJk=
-github.com/subiz/header v1.11.22/go.mod h1:e+AqBucBo2mO1OaWJ441Kitq2h+PDia/uJ+PZle5SsE=
+github.com/subiz/header v1.11.23 h1:FY6wolpfOXKk7I8jGdEPTRoobmhD5khuu1/C6JZedHE=
+github.com/subiz/header v1.11.23/go.mod h1:e+AqBucBo2mO1OaWJ441Kitq2h+PDia/uJ+PZle5SsE=
 golang.org/x/net v0.8.0 h1:Zrh2ngAOFYneWTAIAPethzeaQLuHwhuBkuV6ZiRnUaQ=
 golang.org/x/net v0.8.0/go.mod h1:QVkue5JL9kW//ek3r6jTKnTFis1tRmNAW2P1shuFdJc=
 golang.org/x/sys v0.6.0 h1:MVltZSvRTcU2ljQOhs94SXPftV6DCNnZViHeQps87pQ=

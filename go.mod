@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/getsentry/sentry-go v0.19.0
-	github.com/subiz/header v1.11.22
+	github.com/subiz/header v1.11.23
 )
 
 require (

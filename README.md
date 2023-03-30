@@ -1,5 +1,6 @@
 ## log
 Dead simple logging package for streaming log to syslog
+Dependency free
 
 ## Usage
 Just import and use it

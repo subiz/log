@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	"github.com/subiz/header"
 )
 
 var errServerHost string
@@ -30,18 +28,18 @@ func init() {
 }
 
 var metricmaplock = &sync.Mutex{}
-var metricmap = make(map[string]*header.Event)
+var metricmap = make(map[string]interface{})
 var metricmapcount = make(map[string]int)
 
 func flush() {
 	// flush periodically in 10s
 	for {
 		metricmaplock.Lock()
-		metricmapcopy := make(map[string]*header.Event)
+		metricmapcopy := make(map[string]any)
 		for k, v := range metricmap {
 			metricmapcopy[k] = v
 		}
-		metricmap = make(map[string]*header.Event)
+		metricmap = make(map[string]any)
 
 		metricmapcountcopy := make(map[string]int)
 		for k, v := range metricmapcount {

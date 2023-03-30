@@ -12,7 +12,6 @@ func TestSyslog(t *testing.T) {
 	}
 }
 
-
 func a() {
 	b()
 }

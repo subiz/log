@@ -6,8 +6,6 @@ import (
 	"hash/crc32"
 	"strconv"
 	"strings"
-
-	"github.com/subiz/header"
 )
 
 type M map[string]interface{}
@@ -123,7 +121,7 @@ func ErrNotFound(id, typ string, fields ...M) error {
 }
 
 func IsErr(err error, code E) bool {
-	myerr, ok := err.(*header.Error)
+	myerr, ok := err.(*AError)
 	if !ok {
 		return false
 	}
@@ -139,13 +137,13 @@ func IsErr(err error, code E) bool {
 
 func Error(err error, field M, codes ...E) error {
 	if err != nil {
-		mye, ok := err.(*header.Error)
+		mye, ok := err.(*AError)
 		if !ok {
 			// casting to err failed
 			// dont give up yet, fallback to json
 			errstr := err.Error()
 			if strings.HasPrefix(errstr, "#ERR ") {
-				roote := &header.Error{}
+				roote := &AError{}
 				if er := json.Unmarshal([]byte(errstr[len("#ERR "):]), roote); er == nil {
 					if roote.Code != "" && roote.Class != 0 { // valid err
 						mye = roote
@@ -169,7 +167,7 @@ func Error(err error, field M, codes ...E) error {
 		codestr += "," + string(code)
 	}
 	// access_deny,locked_user
-	outerr := &header.Error{Code: codestr}
+	outerr := &AError{Code: codestr}
 	outerr.Fields = map[string]string{}
 	outerr.XHidden = map[string]string{}
 
@@ -193,9 +191,9 @@ func Error(err error, field M, codes ...E) error {
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
-			outerr.Message = &header.I18NString{
-				En_US: formatString(msg["en_US"], field),
-				Vi_VN: formatString(msg["vi_VN"], field),
+			outerr.Message = map[string]string{
+				"En_US": formatString(msg["en_US"], field),
+				"Vi_VN": formatString(msg["vi_VN"], field),
 			}
 		}
 	}
@@ -207,7 +205,11 @@ func Error(err error, field M, codes ...E) error {
 
 	if errServerDomain != "" {
 		metricmaplock.Lock()
-		metricmap[errid] = &header.Event{AccountId: outerr.XHidden["account_id"], UserId: outerr.XHidden["user_id"], Data: &header.Data{Error: outerr}}
+		metricmap[errid] = map[string]any{
+			"account_id": outerr.XHidden["account_id"],
+			"user_id":    outerr.XHidden["user_id"],
+			"data":       map[string]any{"error": outerr},
+		}
 		metricmapcount[errid]++
 		metricmaplock.Unlock()
 	}
@@ -216,4 +218,37 @@ func Error(err error, field M, codes ...E) error {
 
 func OverrideErrorTable(errtable map[E]H) {
 	ErrorTable = errtable
+}
+
+type AError struct {
+	Description string            `json:"description,omitempty"` // remove, prefer i18n message
+	Class       int32             `json:"class,omitempty"`       // remove http-code, should be derived from code
+	Stack       string            `json:"stack,omitempty"`       // remove
+	Code        string            `json:"code,omitempty"`        // should be general database_error, access_deny
+	Number      string            `json:"number,omitempty"`      // unique, or hash of stack 4930543478 for grouping error
+	Fields      map[string]string `json:"fields,omitempty"`
+	XHidden     map[string]string `json:"_hidden,omitempty" `
+	Message     map[string]string `json:"message,omitempty"`
+}
+
+// Error returns string representation of an Error
+func (e *AError) Error() string {
+	if e == nil {
+		return ""
+	}
+
+	b, _ := json.Marshal(e)
+	return "#ERR " + string(b)
+}
+
+// FromString unmarshal an error string to *Error
+func FromString(err string) *AError {
+	if !strings.HasPrefix(err, "#ERR ") {
+		return nil
+	}
+	e := &AError{}
+	if er := json.Unmarshal([]byte(err[len("#ERR "):]), e); er != nil {
+		return nil
+	}
+	return e
 }

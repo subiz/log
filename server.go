@@ -30,24 +30,24 @@ func init() {
 }
 
 var metricmaplock = &sync.Mutex{}
-var metricmap = make(map[int64]*header.Event)
-var metricmapcount = make(map[int64]int)
+var metricmap = make(map[string]*header.Event)
+var metricmapcount = make(map[string]int)
 
 func flush() {
 	// flush periodically in 10s
 	for {
 		metricmaplock.Lock()
-		metricmapcopy := make(map[int64]*header.Event)
+		metricmapcopy := make(map[string]*header.Event)
 		for k, v := range metricmap {
 			metricmapcopy[k] = v
 		}
-		metricmap = make(map[int64]*header.Event)
+		metricmap = make(map[string]*header.Event)
 
-		metricmapcountcopy := make(map[int64]int)
+		metricmapcountcopy := make(map[string]int)
 		for k, v := range metricmapcount {
 			metricmapcountcopy[k] = v
 		}
-		metricmapcount = make(map[int64]int)
+		metricmapcount = make(map[string]int)
 		metricmaplock.Unlock()
 
 		for metric, theerr := range metricmapcopy {
@@ -55,7 +55,7 @@ func flush() {
 			b, _ := json.Marshal(theerr)
 			resp, err := http.Post(errServerHost+"/collects/?type=counter&secret="+errServerSecret+
 				"&domain="+errServerDomain+
-				"&metric="+strconv.Itoa(int(metric))+
+				"&metric="+metric+
 				"&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))
 			if err != nil {
 				fmt.Println("METRIC ERR", err.Error())

@@ -45,7 +45,8 @@ func Err(accid string, err error, v ...interface{}) error {
 
 	format := strings.Repeat("%v ", len(v))
 	format = "ERR %s [stack %s] " + format
-	v = append([]interface{}{err.Error(), getStack(1)}, v...)
+	stack, _ := getStack(1)
+	v = append([]interface{}{err.Error(), stack}, v...)
 	m := fmt.Sprintf(format, v...)
 
 	_, err = w.writeAndRetry(accid, LOG_ERR, m)

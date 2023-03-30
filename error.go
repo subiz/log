@@ -181,10 +181,21 @@ func Error(err error, field M, codes ...E) error {
 		} else {
 			outerr.Fields[key] = string(b)
 		}
+
+		outerr.Description += string(b) + " " // backward compatitle, remove in future
 	}
 
 	if err != nil {
 		outerr.XHidden["root"] = err.Error()
+	}
+
+	// backward compatible, remove in future
+	outerr.Class = 400
+	for _, code := range codes {
+		if code == E_internal {
+			outerr.Class = 500
+			break
+		}
 	}
 
 	stack, funcname := getStack(0)
@@ -197,6 +208,8 @@ func Error(err error, field M, codes ...E) error {
 			}
 		}
 	}
+
+	outerr.Stack = stack // backward compatible, remove in future
 
 	errid := strconv.Itoa(int(crc32.ChecksumIEEE([]byte(funcname))))
 	outerr.Number = errid

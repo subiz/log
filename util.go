@@ -10,22 +10,7 @@ import (
 func getCaller() string {
 	// fast lookup
 	_, currentFile, currentLine, _ := runtime.Caller(3)
-	return chopPath(currentFile) + " " + strconv.Itoa(currentLine)
-}
-
-var defaultPaths = []string{
-	"/src/git.subiz.net/",
-	"/src/github.com/subiz/",
-}
-
-func chopPath(path string) string {
-	for _, p := range defaultPaths {
-		i := strings.LastIndex(path, p)
-		if i >= 0 {
-			return path[i+len(p):]
-		}
-	}
-	return path
+	return currentFile + " " + strconv.Itoa(currentLine)
 }
 
 // trimOutPrefix removes all the characters before AND the prefix
@@ -76,7 +61,6 @@ func getStack(skip int) (string, string) {
 		// in single host, there is no need to include them in the call stack
 		// remove them help keeping the call stack smaller, navigatiing easier
 		if !strings.HasPrefix(file, "/vendor") {
-			file = trimOutPrefix(file, "/git.subiz.net/")
 			file = trimOutPrefix(file, "/github.com/")
 			file = trimOutPrefix(file, "/gitlab.com/")
 			file = trimOutPrefix(file, "/gopkg.in/")

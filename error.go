@@ -213,3 +213,7 @@ func Error(err error, field M, codes ...E) error {
 	}
 	return outerr
 }
+
+func OverrideErrorTable(errtable map[E]H) {
+	ErrorTable = errtable
+}

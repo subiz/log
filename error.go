@@ -6,6 +6,7 @@ import (
 	"hash/crc32"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type M map[string]interface{}
@@ -158,16 +159,23 @@ func Error(err error, field M, codes ...E) error {
 		}
 	}
 
+	// access_deny,locked_user
+	outerr := &AError{}
+	// backward compatible, remove in future
+	outerr.Class = 400
 	codestr := ""
 	for i, code := range codes {
+		if code == E_internal {
+			outerr.Class = 500
+		}
+
 		if i == 0 {
 			codestr = string(code)
 			continue
 		}
 		codestr += "," + string(code)
 	}
-	// access_deny,locked_user
-	outerr := &AError{Code: codestr}
+	outerr.Code = codestr
 	outerr.Fields = map[string]string{}
 	outerr.XHidden = map[string]string{}
 
@@ -189,15 +197,6 @@ func Error(err error, field M, codes ...E) error {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	// backward compatible, remove in future
-	outerr.Class = 400
-	for _, code := range codes {
-		if code == E_internal {
-			outerr.Class = 500
-			break
-		}
-	}
-
 	stack, funcname := getStack(0)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
@@ -211,7 +210,7 @@ func Error(err error, field M, codes ...E) error {
 
 	outerr.Stack = stack // backward compatible, remove in future
 
-	errid := strconv.Itoa(int(crc32.ChecksumIEEE([]byte(funcname))))
+	errid := strconv.Itoa(int(crc32.ChecksumIEEE([]byte(funcname + "/" + outerr.Code))))
 	outerr.Number = errid
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
@@ -220,6 +219,8 @@ func Error(err error, field M, codes ...E) error {
 		metricmaplock.Lock()
 		metricmap[errid] = map[string]any{
 			"account_id": outerr.XHidden["account_id"],
+			"created":    time.Now().UnixMilli(),
+			"type":       "error_" + errid,
 			"user_id":    outerr.XHidden["user_id"],
 			"data":       map[string]any{"error": outerr},
 		}

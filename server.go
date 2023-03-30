@@ -23,8 +23,10 @@ func init() {
 	}
 	errServerDomain = os.Getenv("ERROR_SERVER_DOMAIN")
 	errServerSecret = os.Getenv("ERROR_SERVER_SECRET")
-	hostname, _ = os.Hostname()
-	go flush()
+	if errServerSecret != "" {
+		hostname, _ = os.Hostname()
+		go flush()
+	}
 }
 
 var metricmaplock = &sync.Mutex{}
@@ -32,8 +34,10 @@ var metricmap = make(map[string]interface{})
 var metricmapcount = make(map[string]int)
 
 func flush() {
-	// flush periodically in 10s
+	// flush periodically in 5s
 	for {
+		time.Sleep(5 * time.Second)
+
 		metricmaplock.Lock()
 		metricmapcopy := make(map[string]any)
 		for k, v := range metricmap {
@@ -51,23 +55,28 @@ func flush() {
 		for metric, theerr := range metricmapcopy {
 			count := metricmapcountcopy[metric]
 			b, _ := json.Marshal(theerr)
-			resp, err := http.Post(errServerHost+"/collects/?type=counter&secret="+errServerSecret+
-				"&domain="+errServerDomain+
-				"&metric="+metric+
-				"&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))
-			if err != nil {
-				fmt.Println("METRIC ERR", err.Error())
-				continue
-			}
-			if resp != nil {
-				if resp.StatusCode != 200 {
-					fmt.Println("METRIC ERR", resp.StatusCode)
+
+			// retry
+			for {
+				resp, err := http.Post(errServerHost+"/collects/?type=counter&secret="+errServerSecret+
+					"&domain="+errServerDomain+
+					"&metric="+metric+
+					"&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))
+				if err != nil {
+					fmt.Println("METRIC ERR", err.Error(), "RETRY")
+					time.Sleep(10 * time.Second)
+					continue
 				}
+
 				if resp.Body != nil {
 					resp.Body.Close()
 				}
+				if resp.StatusCode == 200 || resp.StatusCode >= 400 && resp.StatusCode < 500 {
+					break
+				}
+				fmt.Println("METRIC ERR", resp.StatusCode, "RETRY IN 10sec")
+				time.Sleep(10 * time.Second)
 			}
 		}
-		time.Sleep(10 * time.Second)
 	}
 }

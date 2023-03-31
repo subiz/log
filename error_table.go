@@ -11,22 +11,21 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Lỗi hệ thống tệp",
 		"en_US": "File system error",
 	},
-	"database_error": H{
-		"vi_VN": "",
-		"en_US": "Something wrong, please try again later",
+	"access_token_expired": H{
+		"vi_VN": "Mã truy cập đã hết hạn. Vui lòng đăng nhập lại hoặc xin mã mới",
+		"en_US": "Access token is expired. Please login again or request a new access token",
 	},
-	"1": H{
-		"code":  "connection",
-		"vi_VN": "",
-		"en_US": "Something wrong, please try again later",
+	"internal_connection": H{
+		"vi_VN": "Lỗi kết nối nội bộ, vui lòng thử lại sau",
+		"en_US": "Internal connection error, please retry later",
 	},
 	"missing_resource": H{
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found",
 	},
 	"internal": H{
-		"vi_VN": "Lỗi hệ thống",
-		"en_US": "System error",
+		"vi_VN": "Lỗi hệ thống. Vui lòng thử lại sau",
+		"en_US": "System error. Please try again later",
 	},
 	"access_deny": H{
 		"vi_VN": "Từ chối truy cập",

@@ -26,8 +26,10 @@ const E_unauthorized E = "unauthorized"
 const E_wrong_password E = "wrong_password"
 const E_user_is_banned E = "user_is_banned"
 const E_wrong_signature E = "wrong_signature"
+const E_access_token_expired E = "access_token_expired"
+const E_internal_connection E = "internal_connection"
 
-func ErrInvalidInput(base error, required_fields []string, internal_message string, fields ...M) error {
+func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -36,7 +38,7 @@ func ErrInvalidInput(base error, required_fields []string, internal_message stri
 	return Error(base, field, E_invalid_input)
 }
 
-func ErrServer(base error, fields ...M) error {
+func EServer(base error, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -44,15 +46,7 @@ func ErrServer(base error, fields ...M) error {
 	return Error(base, field, E_internal)
 }
 
-func ErrDB(base error, fields ...M) error {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
-	return Error(base, field, E_internal, E_database_error)
-}
-
-func ErrData(base error, payload []byte, fields ...M) error {
+func EData(base error, payload []byte, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -62,7 +56,15 @@ func ErrData(base error, payload []byte, fields ...M) error {
 	return Error(base, field, E_internal, E_transform_data)
 }
 
-func ErrFS(base error, path string, fields ...M) error {
+func EInternalConnect(base error, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(base, field, E_internal_connection, E_internal)
+}
+
+func EFS(base error, path string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -71,7 +73,7 @@ func ErrFS(base error, path string, fields ...M) error {
 	return Error(base, field, E_internal, E_file_system_error)
 }
 
-func ErrLockedUser(userid string, fields ...M) error {
+func ELockedUser(userid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -80,7 +82,7 @@ func ErrLockedUser(userid string, fields ...M) error {
 	return Error(nil, field, E_locked_user, E_access_deny)
 }
 
-func ErrAccessDeny(userid string, requiredPerm string, fields ...M) error {
+func EDeny(userid string, requiredPerm string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -89,7 +91,7 @@ func ErrAccessDeny(userid string, requiredPerm string, fields ...M) error {
 	return Error(nil, field, E_access_deny)
 }
 
-func ErrWrongPassword(fields ...M) error {
+func EWrongPassword(fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -97,7 +99,7 @@ func ErrWrongPassword(fields ...M) error {
 	return Error(nil, field, E_wrong_password)
 }
 
-func ErrUserIsBanned(accid, userid string, internal_message string, fields ...M) error {
+func EBanned(accid, userid string, internal_message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -111,7 +113,7 @@ func ErrContext(ctx context.Context, err error) error {
 	return err
 }
 
-func ErrMissing(id, typ string, fields ...M) error {
+func EMissing(id, typ string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -136,7 +138,7 @@ func IsErr(err error, code string) bool {
 	return false
 }
 
-func Error(err error, field M, codes ...E) error {
+func Error(err error, field M, codes ...E) *AError {
 	if err != nil {
 		mye, ok := err.(*AError)
 		if !ok {

@@ -15,7 +15,7 @@ type E string
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
-const E_not_found E = "not_found"
+const E_missing_resource E = "missing_resource"
 const E_access_deny E = "access_deny"
 const E_internal E = "internal"
 const E_database_error E = "database_error"
@@ -111,17 +111,17 @@ func ErrContext(ctx context.Context, err error) error {
 	return err
 }
 
-func ErrNotFound(id, typ string, fields ...M) error {
+func ErrMissing(id, typ string, fields ...M) error {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["type"] = typ
 	field["id"] = id
-	return Error(nil, field, E_not_found)
+	return Error(nil, field, E_missing_resource)
 }
 
-func IsErr(err error, code E) bool {
+func IsErr(err error, code string) bool {
 	myerr, ok := err.(*AError)
 	if !ok {
 		return false

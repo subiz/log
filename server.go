@@ -23,8 +23,9 @@ func init() {
 	}
 	errServerDomain = os.Getenv("ERROR_SERVER_DOMAIN")
 	errServerSecret = os.Getenv("ERROR_SERVER_SECRET")
+	hostname, _ = os.Hostname()
+
 	if errServerSecret != "" {
-		hostname, _ = os.Hostname()
 		go flush()
 	}
 }

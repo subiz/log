@@ -20,7 +20,7 @@ var ErrorTable = map[E]H{
 		"vi_VN": "",
 		"en_US": "Something wrong, please try again later",
 	},
-	"not_found": H{
+	"missing_resource": H{
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found",
 	},

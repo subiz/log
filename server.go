@@ -56,9 +56,9 @@ func flush() {
 			count := metricmapcountcopy[metric]
 			b, _ := json.Marshal(theerr)
 
-			// retry
-			for {
-				resp, err := http.Post(errServerHost+"/collects/?type=counter&secret="+errServerSecret+
+			// retry max 10
+			for i := 0; i < 10; i++ {
+				resp, err := http.Post(errServerHost+"/collect/?type=counter&secret="+errServerSecret+
 					"&domain="+errServerDomain+
 					"&metric="+metric+
 					"&count="+strconv.Itoa(count), "application/json", bytes.NewBuffer(b))

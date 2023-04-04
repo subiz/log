@@ -52,7 +52,7 @@ func EData(base error, payload []byte, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["size"] = len(payload)
-	field["payload"] = string(payload[:200])
+	field["payload"] = Substring(string(payload), 0, 200)
 	return Error(base, field, E_internal, E_transform_data)
 }
 
@@ -211,8 +211,7 @@ func Error(err error, field M, codes ...E) *AError {
 	}
 
 	outerr.Stack = stack // backward compatible, remove in future
-
-	errid := strconv.Itoa(int(crc32.ChecksumIEEE([]byte(funcname + "/" + outerr.Code))))
+	errid := strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16)
 	outerr.Number = errid
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
@@ -268,3 +267,24 @@ func FromString(err string) *AError {
 	}
 	return e
 }
+
+func Substring(s string, start int, end int) string {
+	if start == 0 && end >= len(s) {
+		return s
+	}
+
+	start_str_idx := 0
+	i := 0
+	for j := range s {
+		if i == start {
+			start_str_idx = j
+		}
+		if i == end {
+			return s[start_str_idx:j]
+		}
+		i++
+	}
+	return s[start_str_idx:]
+}
+
+// var ISOTABLE = crc64.MakeTable(crc64.ISO)

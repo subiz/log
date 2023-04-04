@@ -43,7 +43,7 @@ func DDDDDD() error {
 
 
 func EEEE() error {
-	err :=  log.ErrDB(nil, nil, log.M{"number2": "thanh"})
+	err :=  log.EData(nil, nil, log.M{"number2": "thanh"})
 	return err
 }
 

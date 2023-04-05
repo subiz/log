@@ -9,6 +9,9 @@ import (
 	"time"
 )
 
+// special field
+// + code
+// + payload_string
 type M map[string]interface{}
 
 type E string
@@ -21,6 +24,7 @@ const E_internal E = "internal"
 const E_database_error E = "database_error"
 const E_file_system_error E = "file_system_error"
 const E_transform_data E = "transform_data" // json payload is broken
+const E_data_corrupted E = "data_corrupted" // json payload is broken
 const E_locked_user E = "locked_user"
 const E_unauthorized E = "unauthorized"
 const E_wrong_password E = "wrong_password"
@@ -28,6 +32,8 @@ const E_user_is_banned E = "user_is_banned"
 const E_wrong_signature E = "wrong_signature"
 const E_access_token_expired E = "access_token_expired"
 const E_internal_connection E = "internal_connection"
+const E_provider_failed E = "provider_failed"
+const E_provider_data_mismatched E = "provider_data_mismatched"
 
 func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
 	var field = M{}
@@ -46,6 +52,16 @@ func EServer(base error, fields ...M) *AError {
 	return Error(base, field, E_internal)
 }
 
+func EProvider(base error, external_service, action string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["external_service"] = external_service
+	field["action"] = action
+	return Error(base, field, E_provider_failed, E_internal)
+}
+
 func EData(base error, payload []byte, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -53,7 +69,7 @@ func EData(base error, payload []byte, fields ...M) *AError {
 	}
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
-	return Error(base, field, E_internal, E_transform_data)
+	return Error(base, field, E_internal, E_transform_data, E_data_corrupted)
 }
 
 func EInternalConnect(base error, fields ...M) *AError {
@@ -213,6 +229,9 @@ func Error(err error, field M, codes ...E) *AError {
 	outerr.Stack = stack // backward compatible, remove in future
 	errid := strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16)
 	outerr.Number = errid
+	if funcname != "" {
+		outerr.XHidden["function_name"] = funcname
+	}
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
 

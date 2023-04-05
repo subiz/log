@@ -7,6 +7,14 @@ var ErrorTable = map[E]H{
 		"vi_VN": "",
 		"en_US": "Something wrong, please try again later",
 	},
+	"provider_failed": H{
+		"vi_VN": "Yêu cầu thất bại từ {external_service}. Vui lòng thử lại sau",
+		"en_US": "Your request to {external_service} failed. Please try again later",
+	},
+	"provider_data_mismatched": H{
+		"vi_VN": "Bất đồng bộ dữ liệu với {external_service}.",
+		"en_US": "Data type mismatch with {external_service}.",
+	},
 	"file_system_error": H{
 		"vi_VN": "Lỗi hệ thống tệp",
 		"en_US": "File system error",

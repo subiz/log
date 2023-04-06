@@ -11,6 +11,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Yêu cầu thất bại từ {external_service}. Vui lòng thử lại sau",
 		"en_US": "Your request to {external_service} failed. Please try again later",
 	},
+	"locked_account": H{
+		"vi_VN:": "Tài khoản của bạn đang bị khóa. Vui lòng liên hệ chủ tài khoản hoặc Subiz để được hỗ trợ",
+		"en_US:": "Your account is locked. Please contact account owner or Subiz for support",
+	},
 	"provider_data_mismatched": H{
 		"vi_VN": "Bất đồng bộ dữ liệu với {external_service}.",
 		"en_US": "Data type mismatch with {external_service}.",

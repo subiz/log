@@ -25,6 +25,9 @@ func init() {
 	errServerSecret = os.Getenv("ERROR_SERVER_SECRET")
 	hostname, _ = os.Hostname()
 	if errServerSecret != "" {
+		if errServerDomain == "" {
+			errServerDomain = "subiz"
+		}
 		go flush()
 	}
 }
@@ -67,15 +70,18 @@ func flush() {
 					time.Sleep(10 * time.Second)
 					continue
 				}
-
 				if resp.Body != nil {
 					resp.Body.Close()
 				}
-				if resp.StatusCode == 200 || resp.StatusCode >= 400 && resp.StatusCode < 500 {
+				if resp.StatusCode == 200 {
 					break
 				}
+
 				fmt.Println("METRIC ERR", resp.StatusCode, "RETRY IN 10sec")
-				time.Sleep(10 * time.Second)
+				if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+					break
+				}
+				time.Sleep(5 * time.Second)
 			}
 		}
 	}

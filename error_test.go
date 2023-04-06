@@ -2,52 +2,38 @@ package log_test
 
 import (
 	"fmt"
-	"testing"
 	log "github.com/subiz/log"
+	"testing"
+	"time"
 )
 
 func A() error {
-	err :=  B()
+	err := B()
 	return err
 }
-
-
-
-
-
-
-
-
-
 
 func B() error {
-	err :=  CCCCCC()
+	err := CCCCCC()
 	return err
 }
-
 
 func CCCCCC() error {
-	err :=  DDDDDD()
+	err := DDDDDD()
 	return err
 }
-
 
 func DDDDDD() error {
-	err := EEEE()
+	err := E()
 	return err
 }
 
-
-
-
-
-
-func EEEE() error {
-	err :=  log.EData(nil, nil, log.M{"number2": "thanh"})
+func E() error {
+	err := log.EServer(nil, log.M{"number3": "thanh"})
 	return err
 }
 
 func TestError(t *testing.T) {
 	err := A()
 	fmt.Println("EEEEEE", err.Error())
+	time.Sleep(20 * time.Second)
 }

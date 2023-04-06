@@ -31,6 +31,7 @@ const E_wrong_password E = "wrong_password"
 const E_user_is_banned E = "user_is_banned"
 const E_wrong_signature E = "wrong_signature"
 const E_access_token_expired E = "access_token_expired"
+const E_locked_account E = "locked_account"
 const E_internal_connection E = "internal_connection"
 const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
@@ -42,6 +43,14 @@ func EInvalidInput(base error, required_fields []string, internal_message string
 	}
 	field["required_fields"] = required_fields
 	return Error(base, field, E_invalid_input)
+}
+
+func EAccountLocked(accid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(nil, field, E_locked_account, E_internal)
 }
 
 func EServer(base error, fields ...M) *AError {

@@ -1,3 +1,5 @@
+// TODO: join stacktrace through grpc
+
 package log
 
 import (
@@ -32,6 +34,7 @@ const E_user_is_banned E = "user_is_banned"
 const E_wrong_signature E = "wrong_signature"
 const E_access_token_expired E = "access_token_expired"
 const E_locked_account E = "locked_account"
+const E_locked_agent E = "locked_agent"
 const E_internal_connection E = "internal_connection"
 const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
@@ -45,11 +48,22 @@ func EInvalidInput(base error, required_fields []string, internal_message string
 	return Error(base, field, E_invalid_input)
 }
 
+func EAgentLocked(accid, agentid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["agent_id"] = agentid
+	return Error(nil, field, E_locked_agent, E_internal)
+}
+
 func EAccountLocked(accid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
+	field["account_id"] = accid
 	return Error(nil, field, E_locked_account, E_internal)
 }
 

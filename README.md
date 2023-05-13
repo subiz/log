@@ -21,7 +21,7 @@ func main() {
 
 ```
 
-Use Info to log info, use Err to log error. Obviously!.
+Use Info to log info, use Err to log error.
 Pass account_id to the first parameter to partition the log stream. It helps you grep log more effeciently.
 
 ## Config Dockerfile

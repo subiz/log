@@ -3,6 +3,18 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_domain": H{
+		"vi_VN": "",
+		"en_US": "Something wrong, please try again later",
+	},
+	"missing_id": H{
+		"vi_VN": "Lỗi định danh {type} không hợp lệ. Vui lòng cung cấp đầy đủ định danh hoặc liên hệ Subiz để được hỗ trợ",
+		"en_US": "Invalid identify for {type}. Please provide the corrected identify or contact Subiz for support",
+	},
+	"not_a_conversation_member": H{
+		"vi_VN": "Bạn không phải là thành viên của hội thoại. Bạn cần được mời vào hội thoại để tiếp tục",
+		"en_US": "You are not a member of this conversation. You need to be invited before continue this action",
+	},
 	"transform_data": H{
 		"vi_VN": "",
 		"en_US": "Something wrong, please try again later",

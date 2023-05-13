@@ -20,9 +20,12 @@ type E string
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_invalid_domain E = "invalid_domain"
 const E_missing_resource E = "missing_resource"
 const E_access_deny E = "access_deny"
+const E_missing_id E = "missing_id"
 const E_internal E = "internal"
+const E_not_a_conversation_member E = "not_a_conversation_member"
 const E_database_error E = "database_error"
 const E_file_system_error E = "file_system_error"
 const E_transform_data E = "transform_data" // json payload is broken
@@ -38,6 +41,14 @@ const E_locked_agent E = "locked_agent"
 const E_internal_connection E = "internal_connection"
 const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
+
+func EMissingId(typ string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(nil, field, E_missing_id, E_invalid_input)
+}
 
 func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
 	var field = M{}

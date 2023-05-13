@@ -33,7 +33,7 @@ func E() error {
 }
 
 func TestError(t *testing.T) {
-	err := A()
+	err := log.EAccountLocked("thanh")// A()
 	fmt.Println("EEEEEE", err.Error())
 	time.Sleep(20 * time.Second)
 }

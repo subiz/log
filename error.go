@@ -41,6 +41,28 @@ const E_locked_agent E = "locked_agent"
 const E_internal_connection E = "internal_connection"
 const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
+const E_payload_too_large E = "payload_too_large"
+const E_limit_exceeded E = "limit_exceeded"
+
+func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["current_size"] = curSize
+	field["maximum_size"] = maxSize
+	return Error(nil, field, E_payload_too_large, E_invalid_input)
+}
+
+func ELimitExceeded(cur int64, capacity int64, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["current"] = cur
+	field["capacity"] = capacity
+	return Error(nil, field, E_limit_exceeded, E_invalid_input)
+}
 
 func EMissingId(typ string, fields ...M) *AError {
 	var field = M{}
@@ -120,7 +142,7 @@ func EFS(base error, path string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["path"] = path
-	return Error(base, field, E_internal, E_file_system_error)
+	return Error(base, field, E_file_system_error, E_internal)
 }
 
 func ELockedUser(userid string, fields ...M) *AError {
@@ -256,6 +278,17 @@ func Error(err error, field M, codes ...E) *AError {
 			outerr.Message = map[string]string{
 				"En_US": formatString(msg["en_US"], field),
 				"Vi_VN": formatString(msg["vi_VN"], field),
+			}
+		}
+	}
+
+	// override message
+	if field["_message"] != nil {
+		imessage := field["_message"]
+		message, ok := imessage.(map[string]string)
+		if ok {
+			for code, msg := range message {
+				outerr.Message[code] = msg
 			}
 		}
 	}

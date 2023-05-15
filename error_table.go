@@ -3,6 +3,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"payload_too_large": H{
+		"vi_VN": "Dung lượng gói tin quá lớn",
+		"en_US": "Payload too large",
+	},
+	"limit_exceeded": H{
+		"vi_VN": "Bạn đã sử dụng quá giới hạn cho phép",
+		"en_US": "You have exceeded the allowable limit",
+	},
 	"invalid_domain": H{
 		"vi_VN": "",
 		"en_US": "Something wrong, please try again later",
@@ -36,8 +44,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Data type mismatch with {external_service}.",
 	},
 	"file_system_error": H{
-		"vi_VN": "Lỗi hệ thống tệp",
-		"en_US": "File system error",
+		"vi_VN": "Lỗi hệ thống tệp. Vui lòng thử lại hoặc liên hệ Subiz để được hỗ trợ",
+		"en_US": "File system error. Please retry or contact Subiz for support",
 	},
 	"access_token_expired": H{
 		"vi_VN": "Mã truy cập đã hết hạn. Vui lòng đăng nhập lại hoặc xin mã mới",

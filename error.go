@@ -26,7 +26,6 @@ const E_access_deny E = "access_deny"
 const E_missing_id E = "missing_id"
 const E_internal E = "internal"
 const E_not_a_conversation_member E = "not_a_conversation_member"
-const E_database_error E = "database_error"
 const E_file_system_error E = "file_system_error"
 const E_transform_data E = "transform_data" // json payload is broken
 const E_data_corrupted E = "data_corrupted" // json payload is broken
@@ -43,6 +42,15 @@ const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
 const E_payload_too_large E = "payload_too_large"
 const E_limit_exceeded E = "limit_exceeded"
+const E_service_unavailable E = "service_unavailable"
+
+func EServiceUnavailable(err error, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(err, field, E_service_unavailable, E_internal)
+}
 
 func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
 	var field = M{}
@@ -293,7 +301,6 @@ func Error(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	outerr.Stack = stack // backward compatible, remove in future
 	errid := strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16)
 	outerr.Number = errid
 	if funcname != "" {
@@ -317,6 +324,36 @@ func Error(err error, field M, codes ...E) *AError {
 	return outerr
 }
 
+func WrapStack(err error, skip int) error {
+	if err == nil {
+		return nil
+	}
+
+	mye, ok := err.(*AError)
+	if !ok {
+		// casting to err failed
+		// dont give up yet, fallback to json
+		errstr := err.Error()
+		if strings.HasPrefix(errstr, "#ERR ") {
+			roote := &AError{}
+			if er := json.Unmarshal([]byte(errstr[len("#ERR "):]), roote); er == nil {
+				if roote.Code != "" && roote.Class != 0 { // valid err
+					mye = roote
+				}
+			}
+		}
+	}
+
+	// not our error
+	if mye == nil {
+		return err
+	}
+
+	stack, _ := getStack(skip)
+	mye.XHidden["stack"] = mye.XHidden["stack"] + "\n--NETWORK--\n" + stack
+	return mye
+}
+
 func OverrideErrorTable(errtable map[E]H) {
 	ErrorTable = errtable
 }
@@ -324,7 +361,6 @@ func OverrideErrorTable(errtable map[E]H) {
 type AError struct {
 	Description string            `json:"description,omitempty"` // remove, prefer i18n message
 	Class       int32             `json:"class,omitempty"`       // remove http-code, should be derived from code
-	Stack       string            `json:"stack,omitempty"`       // remove
 	Code        string            `json:"code,omitempty"`        // should be general database_error, access_deny
 	Number      string            `json:"number,omitempty"`      // unique, or hash of stack 4930543478 for grouping error
 	Fields      map[string]string `json:"fields,omitempty"`

@@ -33,7 +33,15 @@ func E() error {
 }
 
 func TestError(t *testing.T) {
-	err := log.EAccountLocked("thanh")// A()
+	err := log.EAccountLocked("thanh") // A()
 	fmt.Println("EEEEEE", err.Error())
+	time.Sleep(20 * time.Second)
+}
+
+func TestWrap(t *testing.T) {
+	var err error = log.EAccountLocked("thanh") // A()
+	err = log.WrapStack(err, 0)
+	fmt.Println("EEEEEE", err.Error())
+
 	time.Sleep(20 * time.Second)
 }

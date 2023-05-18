@@ -3,6 +3,10 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"service_unavailable": H{
+		"vi_VN": "Không thể kết nối tới dịch vụ cần thiết. Vui lòng thử lại sau",
+		"en_US": "Unable to connect to the required service. Please try again later",
+	},
 	"payload_too_large": H{
 		"vi_VN": "Dung lượng gói tin quá lớn",
 		"en_US": "Payload too large",

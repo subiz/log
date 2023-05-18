@@ -70,9 +70,9 @@ func getStack(skip int) (string, string) {
 		if first == -1 {
 			first = i
 		} else {
-			sb.WriteString("->")
+			sb.WriteString(" -> ")
 		}
-		sb.WriteString(file+":"+strconv.Itoa(line))
+		sb.WriteString(file + ":" + strconv.Itoa(line))
 	}
 	return sb.String(), funcname
 }

@@ -272,6 +272,12 @@ func Error(err error, field M, codes ...E) *AError {
 	outerr.Fields = map[string]string{}
 	outerr.XHidden = map[string]string{}
 
+	skipstack := 0
+	if field["__skip_stack"] != nil {
+		skipstack = interfaceToInt(field["__skip_stack"])
+		delete(field, "__skip_stack")
+	}
+
 	for key, value := range field {
 		if key == "" {
 			continue
@@ -282,20 +288,12 @@ func Error(err error, field M, codes ...E) *AError {
 		} else {
 			outerr.Fields[key] = string(b)
 		}
-
-		outerr.Description += string(b) + " " // backward compatitle, remove in future
 	}
 
 	if err != nil {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	skipstack := 0
-	if field["__skip_stack"] != nil {
-		skipstackstr, _ := field["__skip_stack"].(string)
-		delete(field, "__skip_stack")
-		skipstack, _ = strconv.Atoi(skipstackstr)
-	}
 	stack, funcname := getStack(skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
@@ -382,7 +380,6 @@ func OverrideErrorTable(errtable map[E]H) {
 }
 
 type AError struct {
-	Description string            `json:"description,omitempty"` // remove, prefer i18n message
 	Class       int32             `json:"class,omitempty"`       // remove http-code, should be derived from code
 	Code        string            `json:"code,omitempty"`        // should be general database_error, access_deny
 	Number      string            `json:"number,omitempty"`      // unique, or hash of stack 4930543478 for grouping error
@@ -433,3 +430,26 @@ func Substring(s string, start int, end int) string {
 }
 
 // var ISOTABLE = crc64.MakeTable(crc64.ISO)
+
+func interfaceToInt(in interface{}) int {
+	var number int
+	switch v := in.(type) {
+	case string:
+		number, _ = strconv.Atoi(v)
+	case int:
+		number = v
+	case int64:
+		number = int(v)
+	case int32:
+		number = int(v)
+	case uint64:
+		number = int(v)
+	case uint32:
+		number = int(v)
+	case float32:
+		number = int(v)
+	case float64:
+		number = int(v)
+	}
+	return number
+}

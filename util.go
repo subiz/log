@@ -42,6 +42,7 @@ func getStack(skip int) (string, string) {
 	// skip one system stack, the this current stack line
 	length := runtime.Callers(4+skip, stack[:])
 	funcname := ""
+	first := -1
 	for i := 0; i < length; i++ {
 		pc := stack[i]
 		// pc - 1 because the program counters we use are usually return addresses,
@@ -66,10 +67,12 @@ func getStack(skip int) (string, string) {
 			file = trimOutPrefix(file, "/gopkg.in/")
 		}
 
-		sb.WriteString(file)
-		sb.WriteString(":")
-		sb.WriteString(strconv.Itoa(line))
-		sb.WriteString(",")
+		if first == -1 {
+			first = i
+		} else {
+			sb.WriteString("->")
+		}
+		sb.WriteString(file+":"+strconv.Itoa(line))
 	}
 	return sb.String(), funcname
 }

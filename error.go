@@ -238,7 +238,7 @@ func Error(err error, field M, codes ...E) *AError {
 		// our error
 		if mye != nil {
 			for key, value := range field {
-				if key == "" {
+				if key == "" || key == "__skip_stack" {
 					continue
 				}
 				b, _ := json.Marshal(value)
@@ -290,7 +290,13 @@ func Error(err error, field M, codes ...E) *AError {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	stack, funcname := getStack(0)
+	skipstack := 0
+	if field["__skip_stack"] != nil {
+		skipstackstr, _ := field["__skip_stack"].(string)
+		delete(field, "__skip_stack")
+		skipstack, _ = strconv.Atoi(skipstackstr)
+	}
+	stack, funcname := getStack(skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -367,7 +373,7 @@ func WrapStack(err error, skip int) error {
 	}
 
 	stack, _ := getStack(skip)
-	mye.XHidden["stack"] = mye.XHidden["stack"] + "\n--NETWORK--\n" + stack
+	mye.XHidden["stack"] = mye.XHidden["stack"] + "\n--\n" + stack
 	return mye
 }
 

@@ -237,6 +237,17 @@ func Error(err error, field M, codes ...E) *AError {
 
 		// our error
 		if mye != nil {
+			for key, value := range field {
+				if key == "" {
+					continue
+				}
+				b, _ := json.Marshal(value)
+				if key[0] == '_' {
+					mye.XHidden[key[1:]] = string(b)
+				} else {
+					mye.Fields[key] = string(b)
+				}
+			}
 			return mye
 		}
 	}
@@ -305,6 +316,12 @@ func Error(err error, field M, codes ...E) *AError {
 	outerr.Number = errid
 	if funcname != "" {
 		outerr.XHidden["function_name"] = funcname
+	}
+
+	if field["_function_name"] != nil {
+		if funcname, _ := field["_function_name"].(string); funcname != "" {
+			outerr.XHidden["function_name"] = funcname
+		}
 	}
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname

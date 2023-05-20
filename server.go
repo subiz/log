@@ -13,6 +13,7 @@ import (
 
 var errServerHost string
 var errServerDomain string
+var errVerbose string
 var errServerSecret string
 var hostname string
 
@@ -21,6 +22,7 @@ func init() {
 	if errServerHost == "" {
 		errServerHost = "https://track.sbz.vn"
 	}
+	errVerbose = os.Getenv("ERROR_VERBOSE")
 	errServerDomain = os.Getenv("ERROR_SERVER_DOMAIN")
 	errServerSecret = os.Getenv("ERROR_SERVER_SECRET")
 	hostname, _ = os.Hostname()

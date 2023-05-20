@@ -171,5 +171,5 @@ func unixSyslog() (conn net.Conn, err error) {
 			}
 		}
 	}
-	return nil, errors.New("Unix syslog delivery error")
+	return nil, errors.New("unix syslog delivery error")
 }

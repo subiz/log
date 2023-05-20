@@ -40,8 +40,6 @@ func TestError(t *testing.T) {
 
 func TestWrap(t *testing.T) {
 	var err error = log.EAccountLocked("thanh") // A()
-	err = log.WrapStack(err, 0)
-	fmt.Println("EEEEEE", err.Error())
-
+	log.WrapStack(err, 0)
 	time.Sleep(20 * time.Second)
 }

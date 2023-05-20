@@ -5,6 +5,7 @@ package log
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
 	"strconv"
 	"strings"
@@ -353,6 +354,19 @@ func Error(err error, field M, codes ...E) *AError {
 		metricmapcount[errid]++
 		metricmaplock.Unlock()
 	}
+
+	if errVerbose != "" {
+		// try to get accid
+		var accid string
+		message := outerr.Message["Vi_VN"]
+		if message == "" {
+			message = outerr.Message["En_US"]
+		}
+
+		m := fmt.Sprintf("ERR %s [%s]. %v %v", message, outerr.Code, outerr.Fields, outerr.XHidden)
+		w.writeAndRetry(accid, LOG_ERR, m)
+	}
+
 	return outerr
 }
 

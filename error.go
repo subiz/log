@@ -255,8 +255,14 @@ func Error(err error, field M, codes ...E) *AError {
 				}
 				b, _ := json.Marshal(value)
 				if key[0] == '_' {
+					if mye.XHidden == nil {
+						mye.XHidden = map[string]string{}
+					}
 					mye.XHidden[key[1:]] = string(b)
 				} else {
+					if mye.Fields == nil {
+						mye.Fields = map[string]string{}
+					}
 					mye.Fields[key] = string(b)
 				}
 			}

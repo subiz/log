@@ -95,6 +95,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
 		"en_US": "This user have been banned, please unban this user to continue",
 	},
+	"user_is_unsubscribed": H{
+		"vi_VN": "người dùng này đã từ chối nhận tin truyền thông của bạn, vui lòng bỏ người dùng khỏi danh sách từ chối nhận để tiếp tục",
+		"en_US": "This user have unsubscribed your marketing messages, please remove this usser from unsubscribe list to continue",
+	},
 	"agent_is_inactived": H{
 		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
 		"en_US": "This user have been banned, please unban this user to continue",

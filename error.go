@@ -33,6 +33,7 @@ const E_locked_user E = "locked_user"
 const E_unauthorized E = "unauthorized"
 const E_wrong_password E = "wrong_password"
 const E_user_is_banned E = "user_is_banned"
+const E_user_is_unsubscribed E = "user_is_unsubscribed"
 const E_wrong_signature E = "wrong_signature"
 const E_access_token_expired E = "access_token_expired"
 const E_locked_account E = "locked_account"
@@ -177,6 +178,16 @@ func EWrongPassword(fields ...M) *AError {
 		field = fields[0]
 	}
 	return Error(nil, field, E_wrong_password)
+}
+
+func EUnsub(accid, userid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["user_id"] = userid
+	return Error(nil, field, E_user_is_unsubscribed, E_invalid_input)
 }
 
 func EBanned(accid, userid string, internal_message string, fields ...M) *AError {
@@ -380,12 +391,12 @@ func OverrideErrorTable(errtable map[E]H) {
 }
 
 type AError struct {
-	Class       int32             `json:"class,omitempty"`       // remove http-code, should be derived from code
-	Code        string            `json:"code,omitempty"`        // should be general database_error, access_deny
-	Number      string            `json:"number,omitempty"`      // unique, or hash of stack 4930543478 for grouping error
-	Fields      map[string]string `json:"fields,omitempty"`
-	XHidden     map[string]string `json:"_hidden,omitempty" `
-	Message     map[string]string `json:"message,omitempty"`
+	Class   int32             `json:"class,omitempty"`  // remove http-code, should be derived from code
+	Code    string            `json:"code,omitempty"`   // should be general database_error, access_deny
+	Number  string            `json:"number,omitempty"` // unique, or hash of stack 4930543478 for grouping error
+	Fields  map[string]string `json:"fields,omitempty"`
+	XHidden map[string]string `json:"_hidden,omitempty" `
+	Message map[string]string `json:"message,omitempty"`
 }
 
 // Error returns string representation of an Error

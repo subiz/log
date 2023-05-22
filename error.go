@@ -45,7 +45,6 @@ const E_provider_data_mismatched E = "provider_data_mismatched"
 const E_payload_too_large E = "payload_too_large"
 const E_limit_exceeded E = "limit_exceeded"
 const E_service_unavailable E = "service_unavailable"
-
 func EServiceUnavailable(err error, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -402,6 +401,9 @@ func WrapStack(err error, skip int) error {
 	}
 
 	stack, _ := getStack(skip)
+	if mye.XHidden == nil {
+		mye.XHidden = map[string]string{}
+	}
 	mye.XHidden["stack"] = mye.XHidden["stack"] + "\n--\n" + stack
 	return mye
 }

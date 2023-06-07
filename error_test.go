@@ -2,9 +2,10 @@ package log_test
 
 import (
 	"fmt"
-	log "github.com/subiz/log"
 	"testing"
 	"time"
+
+	log "github.com/subiz/log"
 )
 
 func A() error {
@@ -33,7 +34,7 @@ func E() error {
 }
 
 func TestError(t *testing.T) {
-	err := log.EAccountLocked("thanh") // A()
+	err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
 	fmt.Println("EEEEEE", err.Error())
 	time.Sleep(20 * time.Second)
 }

@@ -45,6 +45,31 @@ const E_provider_data_mismatched E = "provider_data_mismatched"
 const E_payload_too_large E = "payload_too_large"
 const E_limit_exceeded E = "limit_exceeded"
 const E_service_unavailable E = "service_unavailable"
+const E_invalid_zalo_token E = "invalid_zalo_token"
+const E_invalid_facebook_token E = "invalid_facebook_token"
+
+func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["oa_id"] = oaid
+	field["oa_name"] = oaName
+	return Error(nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
+}
+
+func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["page_id"] = pageid
+	field["page_name"] = pageName
+	return Error(nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
+}
+
 func EServiceUnavailable(err error, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {

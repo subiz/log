@@ -3,6 +3,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_facebook_token": H{
+		"vi_VN": "Kết nối tới Facebook đã hết hạn. Vui lòng tích hợp lại fanpage {page_name} ({page_id}) để tiếp tục",
+		"en_US": "Connection to Facebook has expired. Please reintegrate fanpage {page_name} ({page_id}) to continue",
+	},
+	"invalid_zalo_token": H{
+		"vi_VN": "Kết nối tới Zalo đã hết hạn. Vui lòng tích hợp lại OA {oa_name} ({oa_id}) để tiếp tục",
+		"en_US": "Connection to Zalo has expired. Please reintegrate OA {oa_name} ({oa_id}) to continue",
+	},
 	"service_unavailable": H{
 		"vi_VN": "Không thể kết nối tới dịch vụ cần thiết. Vui lòng thử lại sau",
 		"en_US": "Unable to connect to the required service. Please try again later",

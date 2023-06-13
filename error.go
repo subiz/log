@@ -47,6 +47,19 @@ const E_limit_exceeded E = "limit_exceeded"
 const E_service_unavailable E = "service_unavailable"
 const E_invalid_zalo_token E = "invalid_zalo_token"
 const E_invalid_facebook_token E = "invalid_facebook_token"
+const E_insufficient_credit E = "insufficient_credit"
+
+func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["credit_id"] = creditid
+	field["credit_name"] = creditname
+	field["service"] = service
+	return Error(nil, field, E_insufficient_credit)
+}
 
 func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
 	var field = M{}

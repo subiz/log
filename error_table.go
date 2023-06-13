@@ -3,6 +3,10 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"insufficient_credit": H{
+		"vi_VN": "Tài khoản của bạn không còn đủ credit. Vui lòng thanh toán tài khoản '{credit_name}' để tiếp tục",
+		"en_US": "Your account has insufficient credits. Please pay for billing account '{credit_name}' to continue",
+	},
 	"invalid_facebook_token": H{
 		"vi_VN": "Kết nối tới Facebook đã hết hạn. Vui lòng tích hợp lại fanpage {page_name} ({page_id}) để tiếp tục",
 		"en_US": "Connection to Facebook has expired. Please reintegrate fanpage {page_name} ({page_id}) to continue",

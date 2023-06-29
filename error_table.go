@@ -116,8 +116,8 @@ var ErrorTable = map[E]H{
 		"en_US": "This user have been banned, please unban this user to continue",
 	},
 	"wrong_password": H{
-		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
-		"en_US": "This user have been banned, please unban this user to continue",
+		"vi_VN": "Sai mật khẩu",
+		"en_US": "Wrong password",
 	},
 	"password_too_weak": H{
 		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",

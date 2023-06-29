@@ -20,7 +20,7 @@ var hostname string
 func init() {
 	errServerHost = os.Getenv("ERROR_SERVER_HOST")
 	if errServerHost == "" {
-		errServerHost = "https://track.sbz.vn"
+		errServerHost = "https://track.subiz.net"
 	}
 	errVerbose = os.Getenv("ERROR_VERBOSE")
 	errServerDomain = os.Getenv("ERROR_SERVER_DOMAIN")

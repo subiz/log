@@ -32,7 +32,7 @@ var logmap = []string{}
 func flushLog() {
 	// flush periodically in 5s
 	for {
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 		for {
 			logmaplock.Lock()
 			if len(logmap) == 0 {

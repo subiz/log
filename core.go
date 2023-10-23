@@ -146,12 +146,6 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
 		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
-	if w.conn == nil {
-		if err := w.connect(); err != nil {
-			return 0, err
-		}
-	}
-
 	level := "LOG"
 	if p == LOG_DEBUG {
 		level = "DEBUG"
@@ -164,6 +158,10 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 		logmaplock.Lock()
 		logmap = append(logmap, line)
 		logmaplock.Unlock()
+	}
+
+	if w.conn == nil {
+		return 0, nil
 	}
 
 	// write generates and writes a syslog formatted string. The

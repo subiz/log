@@ -11,24 +11,7 @@ var w *Writer
 func init() {
 	hostname, _ := os.Hostname()
 	service := strings.Split(hostname, "-")[0]
-
-	// establishes a connection to a log daemon by connecting to
-	// address raddr on the specified network. Each write to the returned
-	// writer sends a log message with the facility and severity
-	// (from priority) and tag. If tag is empty, the os.Args[0] is used.
-	// If network is empty, Dial will connect to the local syslog server.
-	// Otherwise, see the documentation for net.Dial for valid values
-	// of network and raddr.
-
-	// set global variable
 	w = &Writer{priority: LOG_WARNING | LOG_DAEMON, hostname: hostname, service: service}
-
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	if err := w.connect(); err != nil {
-		fmt.Println("ERR CANNOT CONNECT TO LOGGING SERVICE", err)
-	}
 }
 
 // Err logs a message with severity LOG_ERR, ignoring the severity

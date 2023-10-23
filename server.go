@@ -22,7 +22,7 @@ func init() {
 	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
 	hostname, _ = os.Hostname()
 	if logServerSecret != "" {
-		flushLog()
+		go flushLog()
 	}
 }
 

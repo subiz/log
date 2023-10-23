@@ -3,6 +3,10 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"duplicate_contact": H{
+		"vi_VN": "Giá trị {prop} đã được sử dụng cho một hồ sơ khách khác. Để có thể cập nhật, bạn cần gộp 2 hồ sơ hoặc xóa giá trị này ở hồ sơ còn lại.",
+		"en_US": "The property {prop} is already in used for another contact. To continue, please merge 2 contacts or remove this value in the other contact.",
+	},
 	"insufficient_credit": H{
 		"vi_VN": "Tài khoản của bạn không còn đủ credit. Vui lòng thanh toán tài khoản '{credit_name}' để tiếp tục",
 		"en_US": "Your account has insufficient credits. Please pay for billing account '{credit_name}' to continue",
@@ -10,6 +14,10 @@ var ErrorTable = map[E]H{
 	"invalid_facebook_token": H{
 		"vi_VN": "Kết nối tới Facebook đã hết hạn. Vui lòng tích hợp lại fanpage {page_name} ({page_id}) để tiếp tục",
 		"en_US": "Connection to Facebook has expired. Please reintegrate fanpage {page_name} ({page_id}) to continue",
+	},
+	"invalid_field": H{
+		"vi_VN": "Trường dữ liệu {name} không hợp lệ. Vui lòng thử lại với giá trị khác",
+		"en_US": "The field {name} is not valid. Please try again with a different value",
 	},
 	"invalid_zalo_token": H{
 		"vi_VN": "Kết nối tới Zalo đã hết hạn. Vui lòng tích hợp lại OA {oa_name} ({oa_id}) để tiếp tục",

@@ -151,6 +151,18 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 		}
 	}
 
+	level := "LOG"
+	if p == LOG_DEBUG {
+		level = "DEBUG"
+	} else if p == LOG_ERR {
+		level = "ERROR"
+	}
+	line := fmt.Sprintf("%s app %s %s %s : %s| %s",
+		timestamp, level, w.hostname, accid, caller, msg)
+	logmaplock.Lock()
+	logmap = append(logmap, line)
+	logmaplock.Unlock()
+
 	// write generates and writes a syslog formatted string. The
 	// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
 	return fmt.Fprintf(w.conn, "<%d>%s %s[%s]: %s| %s%s",

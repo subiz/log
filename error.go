@@ -9,7 +9,6 @@ import (
 	"hash/crc32"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // special field
@@ -21,8 +20,10 @@ type E string
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_invalid_field E = "invalid_field"
 const E_invalid_domain E = "invalid_domain"
 const E_missing_resource E = "missing_resource"
+const E_dupplicate_contact_update E = "dupplicate_contact_update"
 const E_access_deny E = "access_deny"
 const E_missing_id E = "missing_id"
 const E_internal E = "internal"
@@ -48,6 +49,27 @@ const E_service_unavailable E = "service_unavailable"
 const E_invalid_zalo_token E = "invalid_zalo_token"
 const E_invalid_facebook_token E = "invalid_facebook_token"
 const E_insufficient_credit E = "insufficient_credit"
+
+func EInvalidField(accid, name, value string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["name"] = name
+	field["value"] = value
+	return Error(nil, field, E_invalid_field, E_invalid_input)
+}
+
+func EDupplicateContactUpdate(accid, emailorphone string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["prop"] = emailorphone
+	return Error(nil, field, E_dupplicate_contact_update, E_invalid_input)
+}
 
 func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) *AError {
 	var field = M{}
@@ -267,7 +289,7 @@ func IsErr(err error, code string) bool {
 	return false
 }
 
-func Error(err error, field M, codes ...E) *AError {
+func NewError(err error, field M, codes ...E) *AError {
 	if err != nil {
 		mye, ok := err.(*AError)
 		if !ok {
@@ -384,32 +406,15 @@ func Error(err error, field M, codes ...E) *AError {
 	}
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
+	return outerr
+}
 
-	if errServerDomain != "" {
-		metricmaplock.Lock()
-		metricmap[errid] = map[string]any{
-			"account_id": outerr.XHidden["account_id"],
-			"created":    time.Now().UnixMilli(),
-			"type":       "error_" + errid,
-			"user_id":    outerr.XHidden["user_id"],
-			"data":       map[string]any{"error": outerr},
-		}
-		metricmapcount[errid]++
-		metricmaplock.Unlock()
-	}
-
-	if errVerbose != "" {
-		// try to get accid
-		var accid string
-		message := outerr.Message["Vi_VN"]
-		if message == "" {
-			message = outerr.Message["En_US"]
-		}
-
-		m := fmt.Sprintf("ERR %s [%s]. %v %v", message, outerr.Code, outerr.Fields, outerr.XHidden)
-		w.writeAndRetry(accid, LOG_ERR, m)
-	}
-
+func Error(err error, field M, codes ...E) *AError {
+	outerr := NewError(err, field, codes...)
+	b, _ := json.Marshal(outerr)
+	accid := outerr.XHidden["account_id"]
+	m := fmt.Sprintf("%s %s", "error_"+outerr.Number, string(b))
+	w.writeAndRetry(accid, LOG_ERR, m)
 	return outerr
 }
 

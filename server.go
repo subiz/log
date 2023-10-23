@@ -21,7 +21,9 @@ func init() {
 	}
 	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
 	hostname, _ = os.Hostname()
-	go flushLog()
+	if logServerSecret != "" {
+		flushLog()
+	}
 }
 
 var logmaplock = &sync.Mutex{}
@@ -31,28 +33,25 @@ func flushLog() {
 	// flush periodically in 5s
 	for {
 		time.Sleep(5 * time.Second)
-
-		if logServerSecret != "" {
-			logmap = nil
-			continue
-		}
-
-		logmaplock.Lock()
-		logmapcopy := make([]string, len(logmap))
-		copy(logmapcopy, logmap)
-		logmap = []string{}
-		logmaplock.Unlock()
-
-		lines := []string{}
-		for i, line := range logmapcopy {
-			lines = append(lines, line)
-			if (i+1)%100 == 0 {
-				sendLog(lines)
-				lines = []string{}
+		for {
+			logmaplock.Lock()
+			if len(logmap) == 0 {
+				logmaplock.Unlock()
+				break
 			}
-		}
-		if len(lines) > 0 {
-			sendLog(lines)
+
+			var lines []string
+			if len(logmap) < 100 {
+				lines = logmap
+				logmap = nil
+			} else {
+				lines = logmap[0:100]
+				logmap = logmap[100:]
+			}
+			logmaplock.Unlock()
+			if len(lines) > 0 {
+				sendLog(lines)
+			}
 		}
 	}
 }

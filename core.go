@@ -141,7 +141,8 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 
 	// log to stdout first
 	caller := getCaller()
-	timestamp := time.Now().Format(time.Stamp)
+	now := time.Now()
+	timestamp := now.Format(time.Stamp)
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
 		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
@@ -157,11 +158,13 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	} else if p == LOG_ERR {
 		level = "ERROR"
 	}
-	line := fmt.Sprintf("%s app %s %s %s : %s| %s",
-		timestamp, level, w.hostname, accid, caller, msg)
-	logmaplock.Lock()
-	logmap = append(logmap, line)
-	logmaplock.Unlock()
+
+	if logServerSecret != "" {
+		line := now.Format("06-01-02 15:04:05") + " app " + level + " " + w.hostname + " " + accid + " " + caller + " " + msg
+		logmaplock.Lock()
+		logmap = append(logmap, line)
+		logmaplock.Unlock()
+	}
 
 	// write generates and writes a syslog formatted string. The
 	// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG

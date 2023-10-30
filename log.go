@@ -1,8 +1,10 @@
 package log
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -11,7 +13,7 @@ var w *Writer
 func init() {
 	hostname, _ := os.Hostname()
 	service := strings.Split(hostname, "-")[0]
-	w = &Writer{priority: LOG_WARNING | LOG_DAEMON, hostname: hostname, service: service}
+	w = &Writer{hostname: hostname, service: service}
 }
 
 // Err logs a message with severity LOG_ERR, ignoring the severity
@@ -26,14 +28,14 @@ func Err(accid string, err error, v ...interface{}) error {
 		accid = "subiz"
 	}
 
-	format := strings.Repeat("%v ", len(v))
-	format = "ERR %s [stack %s] " + format
-	stack, _ := getStack(1)
-	v = append([]interface{}{err.Error(), stack}, v...)
-	m := fmt.Sprintf(format, v...)
+	field := M{"account_id": accid}
+	for i, vv := range v {
+		key := strconv.Itoa(i)
+		b, _ := json.Marshal(vv)
+		field[key] = string(b)
+	}
 
-	_, err = w.writeAndRetry(accid, LOG_ERR, m)
-	return err
+	return Error(err, field)
 }
 
 func Info(accid string, v ...interface{}) error {

@@ -74,7 +74,6 @@ const (
 
 // A Writer is a connection to a syslog server.
 type Writer struct {
-	priority Priority
 	hostname string
 	service  string
 	network  string
@@ -128,7 +127,7 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	if accid == "" {
 		accid = "subiz"
 	}
-	p = (w.priority & facilityMask) | (p & severityMask)
+	p = facilityMask | (p & severityMask)
 
 	w.mu.Lock()
 	defer w.mu.Unlock()

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -289,6 +290,7 @@ func IsErr(err error, code string) bool {
 	return false
 }
 
+// NewError creates or wraps a new error
 func NewError(err error, field M, codes ...E) *AError {
 	if err != nil {
 		mye, ok := err.(*AError)
@@ -330,7 +332,7 @@ func NewError(err error, field M, codes ...E) *AError {
 	}
 
 	// access_deny,locked_user
-	outerr := &AError{}
+	outerr := &AError{Id: rand.Uint64()}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -409,6 +411,8 @@ func NewError(err error, field M, codes ...E) *AError {
 	return outerr
 }
 
+// Error creates an error and report it to server
+// If you dont want to report it, use NewError instead
 func Error(err error, field M, codes ...E) *AError {
 	outerr := NewError(err, field, codes...)
 	b, _ := json.Marshal(outerr)
@@ -456,6 +460,7 @@ func OverrideErrorTable(errtable map[E]H) {
 }
 
 type AError struct {
+	Id      uint64            `json:"id,omitempty"`
 	Class   int32             `json:"class,omitempty"`  // remove http-code, should be derived from code
 	Code    string            `json:"code,omitempty"`   // should be general database_error, access_deny
 	Number  string            `json:"number,omitempty"` // unique, or hash of stack 4930543478 for grouping error

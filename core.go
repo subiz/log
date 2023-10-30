@@ -145,14 +145,12 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
 		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
-	level := "LOG"
-	if p == LOG_DEBUG {
-		level = "DEBUG"
-	} else if p == LOG_ERR {
-		level = "ERROR"
-	}
-
 	if logServerSecret != "" {
+		level := "LOG"
+		if p&LOG_ERR != 0 {
+			level = "ERROR"
+		}
+
 		line := now.Format("06-01-02 15:04:05") + " app " + level + " " + w.hostname + " " + accid + " " + caller + " " + msg
 		logmaplock.Lock()
 		logmap = append(logmap, line)

@@ -35,7 +35,13 @@ func Err(accid string, err error, v ...interface{}) error {
 		field[key] = string(b)
 	}
 
-	return Error(err, field)
+	// same as Error(err, field)
+	// we copied this code to keep the stack unchanged
+	outerr := NewError(err, field)
+	b, _ := json.Marshal(outerr)
+	m := fmt.Sprintf("%s %s", "error_"+outerr.Number, string(b))
+	w.writeAndRetry(accid, LOG_ERR, m)
+	return outerr
 }
 
 func Info(accid string, v ...interface{}) error {

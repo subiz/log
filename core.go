@@ -127,7 +127,7 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	if accid == "" {
 		accid = "subiz"
 	}
-	p = facilityMask | (p & severityMask)
+	thep := facilityMask | (p & severityMask)
 
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -143,16 +143,14 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	now := time.Now()
 	timestamp := now.Format(time.Stamp)
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
-		p, timestamp, w.hostname, accid, w.service, caller, msg, nl)
-
-	level := "LOG"
-	if p == LOG_DEBUG {
-		level = "DEBUG"
-	} else if p == LOG_ERR {
-		level = "ERROR"
-	}
+		thep, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
 	if logServerSecret != "" {
+		level := "LOG"
+		if p == LOG_ERR {
+			level = "ERROR"
+		}
+
 		line := now.Format("06-01-02 15:04:05") + " app " + level + " " + w.hostname + " " + accid + " " + caller + " " + msg
 		logmaplock.Lock()
 		logmap = append(logmap, line)
@@ -166,7 +164,7 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	// write generates and writes a syslog formatted string. The
 	// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
 	return fmt.Fprintf(w.conn, "<%d>%s %s[%s]: %s| %s%s",
-		p, timestamp, accid, w.service, caller, msg, nl)
+		thep, timestamp, accid, w.service, caller, msg, nl)
 }
 
 // unixSyslog opens a connection to the syslog daemon running on the

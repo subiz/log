@@ -34,9 +34,14 @@ func E() error {
 }
 
 func TestError(t *testing.T) {
-	err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
+	// err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
+	err := A()
 	fmt.Println("EEEEEE", err.Error())
-	time.Sleep(20 * time.Second)
+}
+
+func TestLogErr(t *testing.T) {
+	err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
+	log.Err("subiz", err, "param")
 }
 
 func TestWrap(t *testing.T) {

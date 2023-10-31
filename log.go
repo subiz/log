@@ -39,8 +39,7 @@ func Err(accid string, err error, v ...interface{}) error {
 	// we copied this code to keep the stack unchanged
 	outerr := NewError(err, field)
 	b, _ := json.Marshal(outerr)
-	m := fmt.Sprintf("%s %s", "error_"+outerr.Number, string(b))
-	w.writeAndRetry(accid, LOG_ERR, m)
+	w.writeAndRetry(accid, LOG_ERR, string(b))
 	return outerr
 }
 

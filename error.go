@@ -5,7 +5,6 @@ package log
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"hash/crc32"
 	"math/rand"
 	"strconv"
@@ -373,7 +372,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	stack, funcname := getStack(skipstack)
+	stack, funcname := getStack(1 + skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -417,8 +416,7 @@ func Error(err error, field M, codes ...E) *AError {
 	outerr := NewError(err, field, codes...)
 	b, _ := json.Marshal(outerr)
 	accid := outerr.XHidden["account_id"]
-	m := fmt.Sprintf("%s %s", "error_"+outerr.Number, string(b))
-	w.writeAndRetry(accid, LOG_ERR, m)
+	w.writeAndRetry(accid, LOG_ERR, string(b))
 	return outerr
 }
 

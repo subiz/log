@@ -10,7 +10,7 @@ import (
 func getCaller() string {
 	// fast lookup
 	_, currentFile, currentLine, _ := runtime.Caller(3)
-	return currentFile + " " + strconv.Itoa(currentLine)
+	return currentFile + ":" + strconv.Itoa(currentLine)
 }
 
 // trimOutPrefix removes all the characters before AND the prefix
@@ -70,7 +70,7 @@ func getStack(skip int) (string, string) {
 		if first == -1 {
 			first = i
 		} else {
-			sb.WriteString(" -> ")
+			sb.WriteString(" | ")
 		}
 		sb.WriteString(file + ":" + strconv.Itoa(line))
 	}

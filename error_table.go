@@ -3,6 +3,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_poll_connection": H{
+		"vi_VN": "Kết nối thời gian thực không hợp lệ, vui lòng kết nối lại",
+		"en_US": "Real-time connection is invalid, please reconnect",
+	},
+	"dead_poll_connection": H{
+		"vi_VN": "Kết nối thời gian thực đã bị ngắt do nghẽn mạng, vui lòng thử lại sau",
+		"en_US": "Real-time connection was interrupted due to network congestion, please try again later",
+	},
 	"duplicate_contact": H{
 		"vi_VN": "Giá trị {prop} đã được sử dụng cho một hồ sơ khách khác. Để có thể cập nhật, bạn cần gộp 2 hồ sơ hoặc xóa giá trị này ở hồ sơ còn lại.",
 		"en_US": "The property {prop} is already in used for another contact. To continue, please merge 2 contacts or remove this value in the other contact.",

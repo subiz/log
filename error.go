@@ -49,6 +49,28 @@ const E_service_unavailable E = "service_unavailable"
 const E_invalid_zalo_token E = "invalid_zalo_token"
 const E_invalid_facebook_token E = "invalid_facebook_token"
 const E_insufficient_credit E = "insufficient_credit"
+const E_dead_poll_connection E = "dead_poll_connection"
+const E_invalid_poll_connection E = "invalid_poll_connection"
+
+func EInvalidPollConnection(accid, id string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["connection_id"] = id
+	return Error(nil, field, E_invalid_poll_connection, E_invalid_input)
+}
+
+func EDeadPollConnection(accid, id string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["connection_id"] = id
+	return Error(nil, field, E_dead_poll_connection, E_invalid_input)
+}
 
 func EInvalidField(accid, name, value string, fields ...M) *AError {
 	var field = M{}

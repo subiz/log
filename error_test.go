@@ -40,7 +40,7 @@ func TestError(t *testing.T) {
 }
 
 func TestLogErr(t *testing.T) {
-	err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
+	err := log.EInvalidGoogleToken("thanh", "3290323", "Dayladau") // A()
 	log.Err("subiz", err, "param")
 }
 

@@ -47,6 +47,7 @@ const E_limit_exceeded E = "limit_exceeded"
 const E_service_unavailable E = "service_unavailable"
 const E_invalid_zalo_token E = "invalid_zalo_token"
 const E_invalid_facebook_token E = "invalid_facebook_token"
+const E_invalid_google_token E = "invalid_google_token"
 const E_insufficient_credit E = "insufficient_credit"
 const E_dead_poll_connection E = "dead_poll_connection"
 const E_invalid_poll_connection E = "invalid_poll_connection"
@@ -144,6 +145,17 @@ func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError 
 	field["page_id"] = pageid
 	field["page_name"] = pageName
 	return Error(nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
+}
+
+func EInvalidGoogleToken(accid, locationId, locationName string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["location_id"] = locationId
+	field["location_name"] = locationName
+	return Error(nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
 }
 
 func EServiceUnavailable(err error, fields ...M) *AError {

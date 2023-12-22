@@ -47,7 +47,8 @@ func formatString(us string, data map[string]interface{}) string {
 						j--
 					} else {
 						v, ok := data[param]
-						if !ok { // no key ->
+						if !ok {
+							// no key ->
 							output = output + string(ESCCHAR) + param
 							if j >= len(s) {
 							} else if s[j] == ESCCHAREND {

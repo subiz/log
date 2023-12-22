@@ -1,3 +1,5 @@
+
+/* GENERATED FILE, DO NOT EDIT */
 package log
 
 type H map[string]string

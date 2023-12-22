@@ -2,10 +2,12 @@ package log
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
 	"time"
 )
@@ -22,7 +24,19 @@ func init() {
 	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
 	hostname, _ = os.Hostname()
 	if logServerSecret != "" {
-		go flushLog()
+		go func() {
+			for {
+				time.Sleep(5 * time.Second)
+				flushLog()
+			}
+		}()
+
+		go func() {
+			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+			<-ctx.Done()
+			flushLog()
+			stop()
+		}()
 	}
 }
 
@@ -32,26 +46,23 @@ var logmap = []string{}
 func flushLog() {
 	// flush periodically in 5s
 	for {
-		time.Sleep(2 * time.Second)
-		for {
-			logmaplock.Lock()
-			if len(logmap) == 0 {
-				logmaplock.Unlock()
-				break
-			}
-
-			var lines []string
-			if len(logmap) < 100 {
-				lines = logmap
-				logmap = nil
-			} else {
-				lines = logmap[0:100]
-				logmap = logmap[100:]
-			}
+		logmaplock.Lock()
+		if len(logmap) == 0 {
 			logmaplock.Unlock()
-			if len(lines) > 0 {
-				sendLog(lines)
-			}
+			break
+		}
+
+		var lines []string
+		if len(logmap) < 100 {
+			lines = logmap
+			logmap = nil
+		} else {
+			lines = logmap[0:100]
+			logmap = logmap[100:]
+		}
+		logmaplock.Unlock()
+		if len(lines) > 0 {
+			sendLog(lines)
 		}
 	}
 }
@@ -68,6 +79,7 @@ func sendLog(lines []string) {
 		resp, err := http.Post(logServerHost+"/collect/?format=base64&secret="+logServerSecret, "text/plain", buff)
 		if err != nil {
 			fmt.Println("LOG ERR", err.Error(), "RETRY")
+			fmt.Println("STREAM LOG ERR 28340539", err.Error(), ", retrying in 10 seconds...")
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -77,7 +89,7 @@ func sendLog(lines []string) {
 		if resp.StatusCode == 200 {
 			break
 		}
-		fmt.Println("METRIC ERR", resp.StatusCode, "RETRY IN 10sec")
+		fmt.Println("STREAM LOG ERR 19234854", resp.StatusCode, ", retrying in 5 seconds...")
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 			break
 		}

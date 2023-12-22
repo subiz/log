@@ -1,5 +1,3 @@
-// TODO: join stacktrace through grpc
-
 package log
 
 import (
@@ -21,6 +19,7 @@ type E string
 const E_none = ""
 const E_invalid_input E = "invalid_input"
 const E_invalid_field E = "invalid_field"
+const E_email_taken E = "email_taken"
 const E_invalid_domain E = "invalid_domain"
 const E_missing_resource E = "missing_resource"
 const E_dupplicate_contact_update E = "dupplicate_contact_update"
@@ -51,6 +50,15 @@ const E_invalid_facebook_token E = "invalid_facebook_token"
 const E_insufficient_credit E = "insufficient_credit"
 const E_dead_poll_connection E = "dead_poll_connection"
 const E_invalid_poll_connection E = "invalid_poll_connection"
+
+func EEmailTaken(email string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["email"] = email
+	return Error(nil, field, E_email_taken, E_invalid_input)
+}
 
 func EInvalidPollConnection(accid, id string, fields ...M) *AError {
 	var field = M{}

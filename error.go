@@ -50,6 +50,17 @@ const E_invalid_facebook_token E = "invalid_facebook_token"
 const E_insufficient_credit E = "insufficient_credit"
 const E_dead_poll_connection E = "dead_poll_connection"
 const E_invalid_poll_connection E = "invalid_poll_connection"
+const E_invalid_password_length E = "invalid_password_length"
+
+func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["current_length"] = currentLength
+	field["required_length"] = requiredLength
+	return Error(nil, field, E_invalid_password_length, E_invalid_input)
+}
 
 func EEmailTaken(email string, fields ...M) *AError {
 	var field = M{}

@@ -3,6 +3,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_password_length": H{
+		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",
+		"en_US": "Password is too short, please choose a password with more than {required_length} characters",
+	},
+	"email_taken": H{
+		"vi_VN": "Email {email} đã được sử dụng, vui lòng sử dụng email khác",
+		"en_US": "Email {email} is already taken, please use another email",
+	},
 	"invalid_poll_connection": H{
 		"vi_VN": "Kết nối thời gian thực không hợp lệ, vui lòng kết nối lại",
 		"en_US": "Real-time connection is invalid, please reconnect",

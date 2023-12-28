@@ -13,9 +13,21 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Hội thoại đã kết thúc, bạn không thể thực hiện hành động trọng hội thoại này",
 		"en_US": "The conversation has ended, you cannot perform actions in this conversation",
 	},
+	"invalid_token": H{
+		"vi_VN": "Mã không hợp lệ",
+		"en_US": "The token is not valid",
+	},
+	"malformed_request": H{
+		"vi_VN": "Yêu cầu không đúng. Vui lòng liên hệ Subiz để được hỗ trợ",
+		"en_US": "Malformed request. Please contact Subiz for support",
+	},
 	"email_taken": H{
 		"vi_VN": "Email {email} đã được sử dụng, vui lòng sử dụng email khác",
 		"en_US": "Email {email} is already taken, please use another email",
+	},
+	"invalid_connection": H{
+		"vi_VN": "Kết nối không hợp lệ, vui lòng kết nối lại",
+		"en_US": "Your connection is invalid, please reconnect",
 	},
 	"invalid_poll_connection": H{
 		"vi_VN": "Kết nối thời gian thực không hợp lệ, vui lòng kết nối lại",

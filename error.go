@@ -52,6 +52,17 @@ const E_insufficient_credit E = "insufficient_credit"
 const E_dead_poll_connection E = "dead_poll_connection"
 const E_invalid_poll_connection E = "invalid_poll_connection"
 const E_invalid_password_length E = "invalid_password_length"
+const E_conversation_ended E = "conversation_ended"
+
+func EConversationEnded(accid, convoid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["conversation_id"] = convoid
+	return Error(nil, field, E_conversation_ended, E_invalid_input)
+}
 
 func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AError {
 	var field = M{}

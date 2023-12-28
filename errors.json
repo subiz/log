@@ -3,6 +3,10 @@
 		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",
 		"en_US": "Password is too short, please choose a password with more than {required_length} characters"
 	},
+	"conversation_ended": {
+		"vi_VN": "Hội thoại đã kết thúc, bạn không thể thực hiện hành động trọng hội thoại này",
+		"en_US": "The conversation has ended, you cannot perform actions in this conversation"
+	},
 	"email_taken": {
 		"vi_VN": "Email {email} đã được sử dụng, vui lòng sử dụng email khác",
 		"en_US": "Email {email} is already taken, please use another email"
@@ -34,6 +38,10 @@
 	"invalid_zalo_token": {
 		"vi_VN": "Kết nối tới Zalo đã hết hạn. Vui lòng tích hợp lại OA {oa_name} ({oa_id}) để tiếp tục",
 		"en_US": "Connection to Zalo has expired. Please reintegrate OA {oa_name} ({oa_id}) to continue"
+	},
+	"invalid_google_token": {
+		"vi_VN": "Kết nối tới tài khoản Google đã hết hạn. Vui lòng tích hợp lại location {location_name} ({location_id}) của email {email} để tiếp tục",
+		"en_US": "Connection to Google Account has expired. Please reintegrate location {location_name} ({location_id}) of email {email} to continue"
 	},
 	"service_unavailable": {
 		"vi_VN": "Không thể kết nối tới dịch vụ cần thiết. Vui lòng thử lại sau",
@@ -92,6 +100,10 @@
 		"en_US": "Internal connection error, please retry later"
 	},
 	"missing_resource": {
+		"vi_VN": "Không tìm thấy {type}",
+		"en_US": "{type} not found"
+	},
+	"not_found": {
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found"
 	},

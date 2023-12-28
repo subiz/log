@@ -1,3 +1,4 @@
+
 /* GENERATED FILE, DO NOT EDIT */
 package log
 
@@ -7,6 +8,10 @@ var ErrorTable = map[E]H{
 	"invalid_password_length": H{
 		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",
 		"en_US": "Password is too short, please choose a password with more than {required_length} characters",
+	},
+	"conversation_ended": H{
+		"vi_VN": "Hội thoại đã kết thúc, bạn không thể thực hiện hành động trọng hội thoại này",
+		"en_US": "The conversation has ended, you cannot perform actions in this conversation",
 	},
 	"email_taken": H{
 		"vi_VN": "Email {email} đã được sử dụng, vui lòng sử dụng email khác",
@@ -101,6 +106,10 @@ var ErrorTable = map[E]H{
 		"en_US": "Internal connection error, please retry later",
 	},
 	"missing_resource": H{
+		"vi_VN": "Không tìm thấy {type}",
+		"en_US": "{type} not found",
+	},
+	"not_found": H{
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found",
 	},

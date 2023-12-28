@@ -63,7 +63,7 @@ func EMalformedRequest(accid, code string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["code"] = code
-	return Error(nil, field, E_conversation_ended, E_invalid_input)
+	return Error(nil, field, E_malformed_request, E_invalid_input)
 }
 
 func EConversationEnded(accid, convoid string, fields ...M) *AError {
@@ -102,7 +102,7 @@ func EInvalidPollConnection(accid, id string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["connection_id"] = id
-	return Error(nil, field, E_invalid_poll_connection, E_invalid_input)
+	return Error(nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EDeadPollConnection(accid, id string, fields ...M) *AError {
@@ -112,7 +112,7 @@ func EDeadPollConnection(accid, id string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["connection_id"] = id
-	return Error(nil, field, E_dead_poll_connection, E_invalid_input)
+	return Error(nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EInvalidField(accid, name, value string, fields ...M) *AError {

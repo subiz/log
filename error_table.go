@@ -1,4 +1,3 @@
-
 /* GENERATED FILE, DO NOT EDIT */
 package log
 
@@ -58,8 +57,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Connection to Zalo has expired. Please reintegrate OA {oa_name} ({oa_id}) to continue",
 	},
 	"invalid_google_token": H{
-		"vi_VN": "Kết nối tới tài khoản Google đã hết hạn. Vui lòng tích hợp lại location {location_name} ({location_id}) của email {email} để tiếp tục",
-		"en_US": "Connection to Google Account has expired. Please reintegrate location {location_name} ({location_id}) of email {email} to continue",
+		"vi_VN": "Kết nối tới tài khoản Google đã hết hạn. Vui lòng tích hợp lại địa điểm kinh doanh {location_name} ({location_id}) để tiếp tục",
+		"en_US": "Connection to Google Account has expired. Please reintegrate your business location {location_name} ({location_id}) to continue",
 	},
 	"service_unavailable": H{
 		"vi_VN": "Không thể kết nối tới dịch vụ cần thiết. Vui lòng thử lại sau",

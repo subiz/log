@@ -17,6 +17,10 @@ type M map[string]interface{}
 
 type E string
 
+func (e E) String() string {
+	return string(e)
+}
+
 const E_none = ""
 const E_invalid_input E = "invalid_input"
 const E_invalid_field E = "invalid_field"
@@ -402,6 +406,16 @@ func NewError(err error, field M, codes ...E) *AError {
 					}
 					mye.Fields[key] = string(b)
 				}
+
+				codestr := mye.Code
+				for _, code := range codes {
+					if codestr == "" {
+						codestr = string(code)
+						continue
+					}
+					codestr += "," + string(code)
+				}
+				mye.Code = codestr
 			}
 			return mye
 		}

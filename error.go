@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"hash/crc32"
 	"math/rand"
 	"strconv"
@@ -407,7 +408,7 @@ func NewError(err error, field M, codes ...E) *AError {
 	}
 
 	// access_deny,locked_user
-	outerr := &AError{Id: rand.Uint64()}
+	outerr := &AError{Id: rand.Int63()}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -496,6 +497,17 @@ func Error(err error, field M, codes ...E) *AError {
 	return outerr
 }
 
+func (ae *AError) ToJSON() string {
+	if ae == nil {
+		return "{}"
+	}
+
+	messageb, _ := json.Marshal(ae.Message)
+	fieldb, _ := json.Marshal(ae.Fields)
+	out := `{"id": ` + strconv.FormatInt(int64(ae.Id), 10) + `,"class": ` + strconv.FormatInt(int64(ae.Class), 10) + `,"code":` + fmt.Sprintf("%q", ae.Code) + `,"number":` + fmt.Sprintf("%q", ae.Number) + `,"fields":` + string(fieldb) + `,"message":` + string(messageb) + ``
+	return out + `,"error": ` + out + `}}`
+}
+
 func WrapStack(err error, skip int) error {
 	if err == nil {
 		return nil
@@ -534,7 +546,7 @@ func OverrideErrorTable(errtable map[E]H) {
 }
 
 type AError struct {
-	Id      uint64            `json:"id,omitempty"`
+	Id      int64             `json:"id,omitempty"`
 	Class   int32             `json:"class,omitempty"`  // remove http-code, should be derived from code
 	Code    string            `json:"code,omitempty"`   // should be general database_error, access_deny
 	Number  string            `json:"number,omitempty"` // unique, or hash of stack 4930543478 for grouping error

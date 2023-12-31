@@ -49,3 +49,9 @@ func TestWrap(t *testing.T) {
 	log.WrapStack(err, 0)
 	time.Sleep(20 * time.Second)
 }
+
+func TestToJson(t *testing.T) {
+	err := log.EAccountLocked("thanh") // A()
+	str := err.ToJSON()
+	fmt.Println("JSON:", str)
+}

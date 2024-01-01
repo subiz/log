@@ -1,9 +1,14 @@
+
 /* GENERATED FILE, DO NOT EDIT */
 package log
 
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_integration": H{
+		"vi_VN": "Cài đặt kênh giao tiếp bị ngắt hoặc không tồn tại. Vui lòng cài dặt lại kênh giao tiếp",
+		"en_US": "Communication channel settings are disconnected or do not exist. Please reset the communication channel",
+	},
 	"invalid_password_length": H{
 		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",
 		"en_US": "Password is too short, please choose a password with more than {required_length} characters",

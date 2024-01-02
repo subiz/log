@@ -1,4 +1,8 @@
 {
+	"fb_outside_send_window": {
+		"vi_VN": "Không thể gửi tin ngoài thời gian cho phép. Bạn chỉ có thể nhắn tin khi khách chủ động nhắn tin trước. Đây là chính sách chung của facebook, chi tiết https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
+		"en_US": "Cannot send messages outside the allowed time. You can only text when the customer proactively texts first. This is facebook's general policy, details https://developers.facebook.com/docs/messenger-platform/policy/policy-overview"
+	},
 	"invalid_integration": {
 		"vi_VN": "Cài đặt kênh giao tiếp bị ngắt hoặc không tồn tại. Vui lòng cài dặt lại kênh giao tiếp",
 		"en_US": "Communication channel settings are disconnected or do not exist. Please reset the communication channel"

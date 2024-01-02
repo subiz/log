@@ -62,6 +62,8 @@ const E_invalid_field_size E = "invalid_field_size"
 const E_malformed_request E = "malformed_request" // user cannot resolve
 const E_invalid_integration E = "invalid_integration"
 
+const E_fb_outside_send_window E = "fb_outside_send_window"
+
 func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {

@@ -476,7 +476,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	stack, funcname := getStack(1 + skipstack)
+	stack, funcname := GetStack(1 + skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -560,7 +560,7 @@ func WrapStack(err error, skip int) error {
 		return err
 	}
 
-	stack, _ := getStack(skip)
+	stack, _ := GetStack(skip)
 	if mye.XHidden == nil {
 		mye.XHidden = map[string]string{}
 	}

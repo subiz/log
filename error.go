@@ -63,6 +63,39 @@ const E_malformed_request E = "malformed_request" // user cannot resolve
 const E_invalid_integration E = "invalid_integration"
 
 const E_fb_outside_send_window E = "fb_outside_send_window"
+const E_inactive_number E = "inactive_number"
+const E_blocked_number E = "blocked_number"
+const E_invalid_webhook_url E = "invalid_webhook_url"
+
+func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["webhook_url"] = webhookurl
+	return Error(nil, field, E_invalid_webhook_url, E_invalid_input)
+}
+
+func EInactiveNumber(accid, number string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["number"] = number
+	return Error(nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
+}
+
+func EBlockedNumber(accid, number string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["number"] = number
+	return Error(nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
+}
 
 func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
 	var field = M{}

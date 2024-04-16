@@ -3,9 +3,21 @@
 		"vi_VN": "Không thể gửi tin ngoài thời gian cho phép. Bạn chỉ có thể nhắn tin khi khách chủ động nhắn tin trước. Đây là chính sách chung của facebook, chi tiết https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
 		"en_US": "Cannot send messages outside the allowed time. You can only text when the customer proactively texts first. This is facebook's general policy, details https://developers.facebook.com/docs/messenger-platform/policy/policy-overview"
 	},
+	"invalid_webhook_url": {
+		"vi_VN": "Địa chỉ webhook không hợp lệ, vui lòng sử dụng một tên miền công khai",
+		"en_US": "Invalid webhook URL, please use a public domain"
+	},
 	"invalid_integration": {
 		"vi_VN": "Cài đặt kênh giao tiếp bị ngắt hoặc không tồn tại. Vui lòng cài dặt lại kênh giao tiếp",
 		"en_US": "Communication channel settings are disconnected or do not exist. Please reset the communication channel"
+	},
+	"inactive_number": {
+		"vi_VN": "Đầu số {number} chưa được kích hoạt hoặc đã bị khóa, vui lòng kích hoạt đầu số hoặc kiểm tra lại cài đặt",
+		"en_US": "The number {number} is not activated or locked, please activate the number or check the settings again"
+	},
+	"blocked_number": {
+		"vi_VN": "Số điện thoại {number} đang bị chặn. Vui lòng mở chặn để tiếp tục",
+		"en_US": "Phone number {number} is blocked. Please unblock to continue"
 	},
 	"invalid_password_length": {
 		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",

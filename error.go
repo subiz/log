@@ -66,6 +66,29 @@ const E_fb_outside_send_window E = "fb_outside_send_window"
 const E_inactive_number E = "inactive_number"
 const E_blocked_number E = "blocked_number"
 const E_invalid_webhook_url E = "invalid_webhook_url"
+const E_leaver_is_the_last_one_in_conversation E = "leaver_is_the_last_one_in_conversation"
+
+func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["conversation_id"] = convoid
+	field["issuer_id"] = issuerid
+	return Error(nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
+}
+
+func ENotAMember(accid, convoid, issuerid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["conversation_id"] = convoid
+	field["issuer_id"] = issuerid
+	return Error(nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
+}
 
 func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
 	var field = M{}

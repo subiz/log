@@ -95,6 +95,10 @@
 		"vi_VN": "Lỗi định danh {type} không hợp lệ. Vui lòng cung cấp đầy đủ định danh hoặc liên hệ Subiz để được hỗ trợ",
 		"en_US": "Invalid identify for {type}. Please provide the corrected identify or contact Subiz for support"
 	},
+	"leaver_is_the_last_one_in_conversation": {
+		"vi_VN": "Bạn không thể rời hội thoại, bạn là agent cuối cùng trong hội thoại này. Vui lòng thêm agent khác trước khi rời",
+		"en_US": "You cannot leave this conversation, you are the last agent in the conversation. Please add another agent before leaving"
+	},
 	"not_a_conversation_member": {
 		"vi_VN": "Bạn không phải là thành viên của hội thoại. Bạn cần được mời vào hội thoại để tiếp tục",
 		"en_US": "You are not a member of this conversation. You need to be invited before continue this action"

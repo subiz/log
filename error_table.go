@@ -170,8 +170,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Invalid input data",
 	},
 	"invalid_input_format": H{
-		"vi_VN": "Trường dữ liệu "{invalid_field}" không hợp lệ. Vui lòng thử với giá trị khác ({msg}).",
-		"en_US": "The data field "{invalid_field}" is not valid. Please try with another value ({msg}).",
+		"vi_VN": "Trường dữ liệu '{invalid_field}' không hợp lệ. Vui lòng thử với giá trị khác ({msg}).",
+		"en_US": "The data field '{invalid_field}' is not valid. Please try with another value ({msg}).",
 	},
 	"invalid_email": H{
 		"vi_VN": "Email không hợp lệ",

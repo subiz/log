@@ -9,9 +9,21 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Không thể gửi tin ngoài thời gian cho phép. Bạn chỉ có thể nhắn tin khi khách chủ động nhắn tin trước. Đây là chính sách chung của facebook, chi tiết https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
 		"en_US": "Cannot send messages outside the allowed time. You can only text when the customer proactively texts first. This is facebook's general policy, details https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
 	},
+	"invalid_webhook_url": H{
+		"vi_VN": "Địa chỉ webhook không hợp lệ, vui lòng sử dụng một tên miền công khai",
+		"en_US": "Invalid webhook URL, please use a public domain",
+	},
 	"invalid_integration": H{
 		"vi_VN": "Cài đặt kênh giao tiếp bị ngắt hoặc không tồn tại. Vui lòng cài dặt lại kênh giao tiếp",
 		"en_US": "Communication channel settings are disconnected or do not exist. Please reset the communication channel",
+	},
+	"inactive_number": H{
+		"vi_VN": "Đầu số {number} chưa được kích hoạt hoặc đã bị khóa, vui lòng kích hoạt đầu số hoặc kiểm tra lại cài đặt",
+		"en_US": "The number {number} is not activated or locked, please activate the number or check the settings again",
+	},
+	"blocked_number": H{
+		"vi_VN": "Số điện thoại {number} đang bị chặn. Vui lòng mở chặn để tiếp tục",
+		"en_US": "Phone number {number} is blocked. Please unblock to continue",
 	},
 	"invalid_password_length": H{
 		"vi_VN": "Mật khẩu quá ngắn, vui lòng chọn mật khẩu nhiều hơn {required_length} ký tự",
@@ -89,6 +101,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Lỗi định danh {type} không hợp lệ. Vui lòng cung cấp đầy đủ định danh hoặc liên hệ Subiz để được hỗ trợ",
 		"en_US": "Invalid identify for {type}. Please provide the corrected identify or contact Subiz for support",
 	},
+	"leaver_is_the_last_one_in_conversation": H{
+		"vi_VN": "Bạn không thể rời hội thoại, bạn là agent cuối cùng trong hội thoại này. Vui lòng thêm agent khác trước khi rời",
+		"en_US": "You cannot leave this conversation, you are the last agent in the conversation. Please add another agent before leaving",
+	},
 	"not_a_conversation_member": H{
 		"vi_VN": "Bạn không phải là thành viên của hội thoại. Bạn cần được mời vào hội thoại để tiếp tục",
 		"en_US": "You are not a member of this conversation. You need to be invited before continue this action",
@@ -152,6 +168,10 @@ var ErrorTable = map[E]H{
 	"invalid_input": H{
 		"vi_VN": "Dữ liệu đầu vào không hợp lệ",
 		"en_US": "Invalid input data",
+	},
+	"invalid_input_format": H{
+		"vi_VN": "Trường dữ liệu "{invalid_field}" không hợp lệ. Vui lòng thử với giá trị khác ({msg}).",
+		"en_US": "The data field "{invalid_field}" is not valid. Please try with another value ({msg}).",
 	},
 	"invalid_email": H{
 		"vi_VN": "Email không hợp lệ",

@@ -262,7 +262,7 @@ func EServiceUnavailable(err error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(err, field, E_service_unavailable, E_internal)
+	return Error(err, field, E_service_unavailable, E_internal, E_retryable)
 }
 
 func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
@@ -320,7 +320,7 @@ func EAgentLocked(accid, agentid string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["agent_id"] = agentid
-	return Error(nil, field, E_locked_agent, E_internal)
+	return Error(nil, field, E_locked_agent)
 }
 
 func EAccountLocked(accid string, fields ...M) *AError {
@@ -329,7 +329,7 @@ func EAccountLocked(accid string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["account_id"] = accid
-	return Error(nil, field, E_locked_account, E_internal)
+	return Error(nil, field, E_locked_account)
 }
 
 func ERetry(base error, fields ...M) *AError {

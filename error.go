@@ -23,6 +23,7 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_invalid_input_format E = "invalid_input_format"
 const E_invalid_field E = "invalid_field"
 const E_email_taken E = "email_taken"
 const E_invalid_domain E = "invalid_domain"
@@ -31,6 +32,7 @@ const E_dupplicate_contact_update E = "dupplicate_contact_update"
 const E_access_deny E = "access_deny"
 const E_missing_id E = "missing_id"
 const E_internal E = "internal"
+const E_retryable E = "retryable" // -> retryable
 const E_not_a_conversation_member E = "not_a_conversation_member"
 const E_file_system_error E = "file_system_error"
 const E_transform_data E = "transform_data" // json payload is broken
@@ -291,6 +293,17 @@ func EMissingId(typ string, fields ...M) *AError {
 	return Error(nil, field, E_missing_id, E_invalid_input)
 }
 
+func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["invalid_field"] = fieldname
+	field["invalid_value"] = currentvalue
+	field["msg"] = msg
+	return Error(base, field, E_invalid_input_format, E_invalid_input)
+}
+
 func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -319,10 +332,14 @@ func EAccountLocked(accid string, fields ...M) *AError {
 	return Error(nil, field, E_locked_account, E_internal)
 }
 
-func EServer(base error, fields ...M) *AError {
+func EServer(base error, retryable bool, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
+	}
+
+	if retryable {
+		return Error(base, field, E_internal, E_retryable)
 	}
 	return Error(base, field, E_internal)
 }
@@ -495,7 +512,11 @@ func NewError(err error, field M, codes ...E) *AError {
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
+	retryable := false
 	for i, code := range codes {
+		if code == E_retryable {
+			retryable = true
+		}
 		if code == E_internal {
 			outerr.Class = 500
 		}
@@ -554,8 +575,16 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	errid := strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16)
-	outerr.Number = errid
+	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16))
+
+	// classified: database error, filesystem error, account access deny
+	// SBZ-ER72BFD5F
+	// SBZ-EQA2BFD5F
+	prefix := "Q"
+	if retryable {
+		prefix = "R"
+	}
+	outerr.Number = "SBZ-E" + prefix + errid
 	if funcname != "" {
 		outerr.XHidden["function_name"] = funcname
 	}

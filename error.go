@@ -332,14 +332,18 @@ func EAccountLocked(accid string, fields ...M) *AError {
 	return Error(nil, field, E_locked_account, E_internal)
 }
 
-func EServer(base error, retryable bool, fields ...M) *AError {
+func ERetry(base error, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
+	return Error(base, field, E_internal, E_retryable)
+}
 
-	if retryable {
-		return Error(base, field, E_internal, E_retryable)
+func EServer(base error, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
 	}
 	return Error(base, field, E_internal)
 }

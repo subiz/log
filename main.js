@@ -44,7 +44,7 @@ function format(s, data) {
 							output += ESCCHAR + param
 							if (j >= s.length) {
 							} else if (s[j] == ESCCHAREND) {
-								output += string(ESCCHAREND)
+								output += String(ESCCHAREND)
 							}
 						} else {
 							output += v + ''

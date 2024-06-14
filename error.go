@@ -69,6 +69,15 @@ const E_inactive_number E = "inactive_number"
 const E_blocked_number E = "blocked_number"
 const E_invalid_webhook_url E = "invalid_webhook_url"
 const E_leaver_is_the_last_one_in_conversation E = "leaver_is_the_last_one_in_conversation"
+const E_google_error E = "google_error"
+
+func EGoogle(err error, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(nil, field, E_google_error, E_internal, E_retryable)
+}
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {
 	var field = M{}

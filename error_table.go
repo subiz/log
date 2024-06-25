@@ -94,8 +94,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Payload too large",
 	},
 	"limit_exceeded": H{
-		"vi_VN": "Bạn đã sử dụng quá giới hạn cho phép",
-		"en_US": "You have exceeded the allowable limit",
+		"vi_VN": "Bạn đã sử dụng quá giới hạn cho phép ({capacity})",
+		"en_US": "You have exceeded the allowable limit ({capacity})",
 	},
 	"invalid_domain": H{
 		"vi_VN": "",

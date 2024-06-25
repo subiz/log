@@ -284,12 +284,11 @@ func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
 	return Error(nil, field, E_payload_too_large, E_invalid_input)
 }
 
-func ELimitExceeded(cur int64, capacity int64, fields ...M) *AError {
+func ELimitExceeded(capacity int64, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	field["current"] = cur
 	field["capacity"] = capacity
 	return Error(nil, field, E_limit_exceeded, E_invalid_input)
 }
@@ -624,7 +623,7 @@ func Error(err error, field M, codes ...E) *AError {
 
 func (ae *AError) ToJSON() string {
 	if ae == nil {
-		return "{}"
+		return "null"
 	}
 
 	messageb, _ := json.Marshal(ae.Message)

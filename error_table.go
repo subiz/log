@@ -13,6 +13,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Gián đoạn kết nối tới máy chủ Google, vui lòng thử lại sau",
 		"en_US": "Connection to Google server interrupted, please try again later",
 	},
+	"invalid_otp": H{
+		"vi_VN": "Mã OTP đã hết hạn",
+		"en_US": "This OTP code has expired",
+	},
 	"invalid_webhook_url": H{
 		"vi_VN": "Địa chỉ webhook không hợp lệ, vui lòng sử dụng một tên miền công khai",
 		"en_US": "Invalid webhook URL, please use a public domain",
@@ -24,6 +28,10 @@ var ErrorTable = map[E]H{
 	"inactive_number": H{
 		"vi_VN": "Đầu số {number} chưa được kích hoạt hoặc đã bị khóa, vui lòng kích hoạt đầu số hoặc kiểm tra lại cài đặt",
 		"en_US": "The number {number} is not activated or locked, please activate the number or check the settings again",
+	},
+	"invite_link_expired": H{
+		"vi_VN": "Link mời đã hết hạn. Vui lòng liên hệ chủ tài khoản để lấy link mới",
+		"en_US": "The invitation link has expired. Please contact the account owner to get a new link",
 	},
 	"blocked_number": H{
 		"vi_VN": "Số điện thoại {number} đang bị chặn. Vui lòng mở chặn để tiếp tục",

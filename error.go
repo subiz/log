@@ -23,6 +23,7 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
 const E_invalid_field E = "invalid_field"
 const E_email_taken E = "email_taken"
@@ -44,6 +45,7 @@ const E_user_is_banned E = "user_is_banned"
 const E_user_is_unsubscribed E = "user_is_unsubscribed"
 const E_wrong_signature E = "wrong_signature"
 const E_access_token_expired E = "access_token_expired"
+const E_invite_link_expired E = "invite_link_expired"
 const E_locked_account E = "locked_account"
 const E_locked_agent E = "locked_agent"
 const E_internal_connection E = "internal_connection"
@@ -111,6 +113,16 @@ func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
 	return Error(nil, field, E_invalid_webhook_url, E_invalid_input)
 }
 
+func EInvalidOTP(username, otp string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["username"] = username
+	field["otp"] = otp
+	return Error(nil, field, E_invalid_otp, E_invalid_input)
+}
+
 func EInactiveNumber(accid, number string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -129,6 +141,15 @@ func EBlockedNumber(accid, number string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["number"] = number
 	return Error(nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
+}
+
+func EInviteLinkExpired(link string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["link"] = link
+	return Error(nil, field, E_invite_link_expired, E_invalid_input)
 }
 
 func EInvalidIntegration(accid, inteid string, fields ...M) *AError {

@@ -505,6 +505,8 @@ func NewError(err error, field M, codes ...E) *AError {
 					}
 				}
 			}
+		} else {
+			mye = mye.Clone()
 		}
 
 		// our error
@@ -540,7 +542,6 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	// access_deny,locked_user
 	outerr := &AError{Id: rand.Int63()}
 	// backward compatible, remove in future
 	outerr.Class = 400
@@ -698,6 +699,36 @@ type AError struct {
 	Fields  map[string]string `json:"fields,omitempty"`
 	XHidden map[string]string `json:"_hidden,omitempty" `
 	Message map[string]string `json:"message,omitempty"`
+}
+
+func (e *AError) Clone() *AError {
+	if e == nil {
+		return nil
+	}
+
+	clone := &AError{
+		Id:      e.Id,
+		Class:   e.Class,
+		Code:    e.Code,
+		Number:  e.Number,
+		Message: e.Message,
+	}
+	if len(e.XHidden) > 0 {
+		newXHidden := map[string]string{}
+		for k, v := range e.XHidden {
+			newXHidden[k] = v
+		}
+		clone.XHidden = newXHidden
+	}
+
+	if len(e.Fields) > 0 {
+		newFields := map[string]string{}
+		for k, v := range e.Fields {
+			newFields[k] = v
+		}
+		clone.Fields = newFields
+	}
+	return clone
 }
 
 // Error returns string representation of an Error

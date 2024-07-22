@@ -2,6 +2,7 @@ package log_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -54,4 +55,20 @@ func TestToJson(t *testing.T) {
 	err := log.EAccountLocked("thanh") // A()
 	str := err.ToJSON()
 	fmt.Println("JSON:", str)
+}
+
+func TestMarshalJson(t *testing.T) {
+	err := log.EAccountLocked("thanh") // A()
+	str := log.NewError(err, nil).ToJSON()
+	fmt.Println("JSON--------:", str)
+}
+
+func TestDontModify(t *testing.T) {
+	err := log.EAccountLocked("thanh") // A()
+
+	log.EServer(err, log.M{"secret": "2340asdffEIFJ42"})
+	str := log.NewError(err, nil).ToJSON()
+	if strings.Contains(str, "2340asdffEIFJ42") {
+		t.Error("should not contain")
+	}
 }

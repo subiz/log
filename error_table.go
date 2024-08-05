@@ -5,6 +5,10 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_promotion_code": H{
+		"vi_VN": "Mã khuyến mại không hợp lệ. Vui lòng thử lại với mã khác",
+		"en_US": "Promotion code is not valid. Please try again with another code",
+	},
 	"fb_outside_send_window": H{
 		"vi_VN": "Không thể gửi tin ngoài thời gian cho phép. Bạn chỉ có thể nhắn tin khi khách chủ động nhắn tin trước. Đây là chính sách chung của facebook, chi tiết https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",
 		"en_US": "Cannot send messages outside the allowed time. You can only text when the customer proactively texts first. This is facebook's general policy, details https://developers.facebook.com/docs/messenger-platform/policy/policy-overview",

@@ -60,6 +60,7 @@ const E_invalid_google_token E = "invalid_google_token"
 const E_insufficient_credit E = "insufficient_credit"
 const E_invalid_connection E = "invalid_connection"
 const E_invalid_password_length E = "invalid_password_length"
+const E_invalid_promotion_code E = "invalid_promotion_code"
 const E_conversation_ended E = "conversation_ended"
 const E_remote_error E = "remote_error"
 const E_invalid_field_size E = "invalid_field_size"
@@ -79,6 +80,16 @@ func EGoogle(err error, fields ...M) *AError {
 		field = fields[0]
 	}
 	return Error(nil, field, E_google_error, E_internal, E_retryable)
+}
+
+func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["promotion_code"] = code
+	field["errors"] = errors
+	return Error(nil, field, E_invalid_promotion_code, E_invalid_input)
 }
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {

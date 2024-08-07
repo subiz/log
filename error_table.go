@@ -29,6 +29,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Cài đặt kênh giao tiếp bị ngắt hoặc không tồn tại. Vui lòng cài dặt lại kênh giao tiếp",
 		"en_US": "Communication channel settings are disconnected or do not exist. Please reset the communication channel",
 	},
+	"invalid_currency": H{
+		"vi_VN": "Đơn vị tiền tệ không hợp lệ. Vui lòng chọn USD hoặc VND",
+		"en_US": "Invalid currency. Please select USD or VND",
+	},
 	"inactive_number": H{
 		"vi_VN": "Đầu số {number} chưa được kích hoạt hoặc đã bị khóa, vui lòng kích hoạt đầu số hoặc kiểm tra lại cài đặt",
 		"en_US": "The number {number} is not activated or locked, please activate the number or check the settings again",

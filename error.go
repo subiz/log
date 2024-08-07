@@ -48,6 +48,7 @@ const E_access_token_expired E = "access_token_expired"
 const E_invite_link_expired E = "invite_link_expired"
 const E_locked_account E = "locked_account"
 const E_locked_agent E = "locked_agent"
+const E_invalid_currency E = "invalid_currency"
 const E_internal_connection E = "internal_connection"
 const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
@@ -90,6 +91,16 @@ func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
 	field["promotion_code"] = code
 	field["errors"] = errors
 	return Error(nil, field, E_invalid_promotion_code, E_invalid_input)
+}
+
+func EInvalidCurrency(accid, cur string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["currency"] = cur
+	return Error(nil, field, E_invalid_currency, E_invalid_input)
 }
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {

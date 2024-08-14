@@ -5,6 +5,10 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"password_too_weak": H{
+		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
+		"en_US": "This user have been banned, please unban this user to continue",
+	},
 	"invalid_promotion_code": H{
 		"vi_VN": "Mã khuyến mại không hợp lệ. Vui lòng thử lại với mã khác",
 		"en_US": "Promotion code is not valid. Please try again with another code",
@@ -216,9 +220,5 @@ var ErrorTable = map[E]H{
 	"wrong_password": H{
 		"vi_VN": "Sai mật khẩu",
 		"en_US": "Wrong password",
-	},
-	"password_too_weak": H{
-		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
-		"en_US": "This user have been banned, please unban this user to continue",
 	},
 }

@@ -67,7 +67,8 @@ const E_remote_error E = "remote_error"
 const E_invalid_field_size E = "invalid_field_size"
 const E_malformed_request E = "malformed_request" // user cannot resolve
 const E_invalid_integration E = "invalid_integration"
-
+const E_still_have_open_invoice E = "still_have_open_invoice"
+const E_invalid_subscription E = "invalid_subscription"
 const E_fb_outside_send_window E = "fb_outside_send_window"
 const E_inactive_number E = "inactive_number"
 const E_blocked_number E = "blocked_number"
@@ -110,6 +111,15 @@ func EInvalidCurrency(accid, cur string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["currency"] = cur
 	return Error(nil, field, E_invalid_currency, E_invalid_input)
+}
+
+func EStillHaveOpenInvoice(accid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	return Error(nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
 }
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {

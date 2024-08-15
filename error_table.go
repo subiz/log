@@ -5,6 +5,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"still_have_open_invoice": H{
+		"vi_VN": "Không thể thực hiện vì tài khoản của bạn vẫn còn hóa đơn chưa thanh toán. Vui lòng thử lại sau khi thanh toán",
+		"en_US": "Unable to proceed because your account still has an open invoice. Please try again after completing the payment.",
+	},
+	"invalid_subscription": H{
+		"vi_VN": "Trạng thái gói cước không hợp lệ. Vui lòng liên hệ Subiz để nhận hỗ trợ",
+		"en_US": "Subscription is invalid. Please contact Subiz for support",
+	},
 	"password_too_weak": H{
 		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
 		"en_US": "This user have been banned, please unban this user to continue",

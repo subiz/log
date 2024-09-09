@@ -166,8 +166,8 @@ var ErrorTable = map[E]H{
 		"en_US": "File system error. Please retry or contact Subiz for support",
 	},
 	"access_token_expired": H{
-		"vi_VN": "Mã truy cập đã hết hạn. Vui lòng đăng nhập lại hoặc xin mã mới",
-		"en_US": "Access token is expired. Please login again or request a new access token",
+		"vi_VN": "Phiên đăng nhập đã kết thúc. Vui lòng đăng nhập lại hoặc thử lại với một token khác hợp lệ.",
+		"en_US": "The login session has ended. Please log in again or try again with a different valid token.",
 	},
 	"internal_connection": H{
 		"vi_VN": "Lỗi kết nối nội bộ, vui lòng thử lại sau",

@@ -23,6 +23,7 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
 const E_invalid_field E = "invalid_field"
@@ -471,6 +472,14 @@ func EDeny(userid string, requiredPerm string, fields ...M) *AError {
 	}
 	field["user_id"] = userid
 	return Error(nil, field, E_access_deny)
+}
+
+func EExpiredAccessToken(fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(nil, field, E_access_deny, E_access_token_expired)
 }
 
 func EWrongPassword(fields ...M) *AError {

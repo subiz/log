@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -792,12 +793,30 @@ func (e *AError) Error() string {
 }
 
 // FromString unmarshal an error string to *Error
-func FromString(err string) *AError {
-	if !strings.HasPrefix(err, "#ERR ") {
+func ErrorFromString(err string) *AError {
+	if err == "" {
 		return nil
 	}
+
+	err = strings.TrimPrefix(err, "#ERR ")
 	e := &AError{}
-	if er := json.Unmarshal([]byte(err[len("#ERR "):]), e); er != nil {
+	if er := json.Unmarshal([]byte(err), e); er != nil {
+		return nil
+	}
+	return e
+}
+
+var ERRB = []byte("#ERR ")
+
+// UnmarshalError unmarshal an error string to *Error
+func UnmarshalError(err []byte) *AError {
+	if len(err) == 0 {
+		return nil
+	}
+
+	err = bytes.TrimPrefix(err, ERRB)
+	e := &AError{}
+	if er := json.Unmarshal(err, e); er != nil {
 		return nil
 	}
 	return e

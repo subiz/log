@@ -119,6 +119,10 @@
 		"vi_VN": "Bạn đã sử dụng quá giới hạn cho phép ({capacity})",
 		"en_US": "You have exceeded the allowable limit ({capacity})"
 	},
+	"rate_limit": {
+		"vi_VN": "Yêu cầu bị từ chối do vượt quá giới hạn cho phép. Bạn cần phải chậm lại",
+		"en_US": "Request denied due to exceeding allowed limit. You need to slow down"
+	},
 	"invalid_domain": {
 		"vi_VN": "",
 		"en_US": "Something wrong, please try again later"

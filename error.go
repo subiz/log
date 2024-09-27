@@ -56,6 +56,7 @@ const E_provider_failed E = "provider_failed"
 const E_provider_data_mismatched E = "provider_data_mismatched"
 const E_payload_too_large E = "payload_too_large"
 const E_limit_exceeded E = "limit_exceeded"
+const E_rate_limit E = "rate_limit"
 const E_service_unavailable E = "service_unavailable"
 const E_invalid_zalo_token E = "invalid_zalo_token"
 const E_invalid_facebook_token E = "invalid_facebook_token"
@@ -355,6 +356,14 @@ func ELimitExceeded(capacity int64, fields ...M) *AError {
 	}
 	field["capacity"] = capacity
 	return Error(nil, field, E_limit_exceeded, E_invalid_input)
+}
+
+func ERateLimit(capacity int64, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error(nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
 }
 
 func EMissingId(typ string, fields ...M) *AError {

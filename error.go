@@ -79,6 +79,18 @@ const E_invalid_webhook_url E = "invalid_webhook_url"
 const E_password_too_weak E = "password_too_weak"
 const E_leaver_is_the_last_one_in_conversation E = "leaver_is_the_last_one_in_conversation"
 const E_google_error E = "google_error"
+const E_close_public_channel E = "close_public_channel"
+
+func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["conversation_id"] = convoid
+	field["channel"] = channel
+	return Error(nil, field, E_close_public_channel, E_invalid_input)
+}
 
 func EPasswordTooWeak(fields ...M) *AError {
 	var field = M{}

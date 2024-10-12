@@ -11,6 +11,10 @@
 		"vi_VN": "Mật khẩu quá yếu, vui lòng chọn mật khẩu có ít nhất 8 ký tự",
 		"en_US": "Password is too weak, please choose a password with at least 8 characters"
 	},
+	"close_public_channel": {
+		"vi_VN": "Không thể đóng hội thoại ở kênh công khai",
+		"en_US": "Cannot end conversation in this public channel"
+	},
 	"invalid_promotion_code": {
 		"vi_VN": "Mã khuyến mại không hợp lệ. Vui lòng thử lại với mã khác",
 		"en_US": "Promotion code is not valid. Please try again with another code"

@@ -9,6 +9,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Không thể thực hiện vì tài khoản của bạn vẫn còn hóa đơn chưa thanh toán. Vui lòng thử lại sau khi thanh toán",
 		"en_US": "Unable to proceed because your account still has an open invoice. Please try again after completing the payment.",
 	},
+	"network_error": H{
+		"vi_VN": "Không thể kết nối với máy chủ do sự cố mạng, vui lòng kiểm tra kết nối internet của bạn sau đó thử lại.",
+		"en_US": "Cannot connect to the server due to network problem, please check your internet connection then try again.",
+	},
 	"invalid_subscription": H{
 		"vi_VN": "Trạng thái gói cước không hợp lệ. Vui lòng liên hệ Subiz để nhận hỗ trợ",
 		"en_US": "Subscription is invalid. Please contact Subiz for support",
@@ -16,6 +20,10 @@ var ErrorTable = map[E]H{
 	"password_too_weak": H{
 		"vi_VN": "Người dùng này đã bị chặn, vui lòng bỏ chặn để tiếp tục",
 		"en_US": "This user have been banned, please unban this user to continue",
+	},
+	"close_public_channel": H{
+		"vi_VN": "Không thể đóng hội thoại ở kênh công khai",
+		"en_US": "Cannot end conversation in this public channel",
 	},
 	"invalid_promotion_code": H{
 		"vi_VN": "Mã khuyến mại không hợp lệ. Vui lòng thử lại với mã khác",

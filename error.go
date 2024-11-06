@@ -451,6 +451,16 @@ func EProvider(base error, external_service, action string, fields ...M) *AError
 	return Error(base, field, E_provider_failed, E_internal)
 }
 
+func EParseInput(base error, payload []byte, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["size"] = len(payload)
+	field["payload"] = Substring(string(payload), 0, 200)
+	return Error(base, field, E_invalid_input)
+}
+
 func EData(base error, payload []byte, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {

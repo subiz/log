@@ -80,6 +80,30 @@ const E_password_too_weak E = "password_too_weak"
 const E_leaver_is_the_last_one_in_conversation E = "leaver_is_the_last_one_in_conversation"
 const E_google_error E = "google_error"
 const E_close_public_channel E = "close_public_channel"
+const E_invalid_kb_handle E = "invalid_kb_handle"
+const E_kb_handle_already_used = "kb_handle_already_used"
+
+func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["kb"] = kb
+	field["handle"] = handle
+	return Error(nil, field, E_invalid_kb_handle, E_invalid_input)
+}
+
+func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["kb"] = kb
+	field["handle"] = handle
+	return Error(nil, field, E_kb_handle_already_used, E_invalid_input)
+}
 
 func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
 	var field = M{}

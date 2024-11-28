@@ -5,6 +5,14 @@ package log
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"invalid_kb_handle": H{
+		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
+		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'",
+	},
+	"kb_handle_already_used": H{
+		"vi_VN": "Địa chỉ đã được sử dụng, vui lòng chọn địa chỉ khác",
+		"en_US": "Handle already in use, please choose another handle",
+	},
 	"still_have_open_invoice": H{
 		"vi_VN": "Không thể thực hiện vì tài khoản của bạn vẫn còn hóa đơn chưa thanh toán. Vui lòng thử lại sau khi thanh toán",
 		"en_US": "Unable to proceed because your account still has an open invoice. Please try again after completing the payment.",

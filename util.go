@@ -78,6 +78,11 @@ func GetStack(skip int) (string, string) {
 	return sb.String(), funcname
 }
 
+func Stack() string {
+	stack, _ := GetStack(0)
+	return stack
+}
+
 // isIgnorePath indicates whether a path is just noise, that excluding the path does not
 // affect error context
 func isIgnorePath(path string) bool {

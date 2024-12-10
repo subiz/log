@@ -24,6 +24,7 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_api_http_unsupported E = "api_http_unsupported"
 const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
@@ -82,6 +83,18 @@ const E_google_error E = "google_error"
 const E_close_public_channel E = "close_public_channel"
 const E_invalid_kb_handle E = "invalid_kb_handle"
 const E_kb_handle_already_used = "kb_handle_already_used"
+
+
+func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["ip"] = ip
+	field["_url"] = url
+	field["_ref"] = ref
+	return Error(nil, field, E_api_http_unsupported, E_invalid_input)
+}
 
 func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
 	var field = M{}

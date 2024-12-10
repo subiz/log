@@ -3,6 +3,10 @@
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'"
 	},
+	"api_http_unsupported": {
+		"vi_VN": "API chỉ có thể truy cập qua HTTPS. Đảm bảo URL bắt đầu bằng 'https://' chứ không phải 'http://'.",
+		"en_US": "The API is only accessible over HTTPS. Ensure the URL starts with 'https://' and not 'http://'."
+	},
 	"kb_handle_already_used": {
 		"vi_VN": "Địa chỉ đã được sử dụng, vui lòng chọn địa chỉ khác",
 		"en_US": "Handle already in use, please choose another handle"

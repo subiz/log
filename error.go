@@ -24,6 +24,7 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_unsupported_file_format E = "unsupported_file_format"
 const E_api_http_unsupported E = "api_http_unsupported"
 const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
@@ -42,7 +43,6 @@ const E_file_system_error E = "file_system_error"
 const E_transform_data E = "transform_data" // json payload is broken
 const E_data_corrupted E = "data_corrupted" // json payload is broken
 const E_locked_user E = "locked_user"
-const E_unauthorized E = "unauthorized"
 const E_wrong_password E = "wrong_password"
 const E_user_is_banned E = "user_is_banned"
 const E_user_is_unsubscribed E = "user_is_unsubscribed"
@@ -84,6 +84,16 @@ const E_close_public_channel E = "close_public_channel"
 const E_invalid_kb_handle E = "invalid_kb_handle"
 const E_kb_handle_already_used = "kb_handle_already_used"
 
+func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["file_format"] = fileformat
+	field["supported"] = strings.Join(supporteds, " ,")
+	return Error(nil, field, E_unsupported_file_format, E_invalid_input)
+}
 
 func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
 	var field = M{}

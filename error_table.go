@@ -9,6 +9,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'",
 	},
+	"unsupported_file_format": H{
+		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}",
+		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}",
+	},
 	"api_http_unsupported": H{
 		"vi_VN": "API chỉ có thể truy cập qua HTTPS. Đảm bảo URL bắt đầu bằng 'https://' chứ không phải 'http://'.",
 		"en_US": "The API is only accessible over HTTPS. Ensure the URL starts with 'https://' and not 'http://'.",

@@ -10,8 +10,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'",
 	},
 	"unsupported_file_format": H{
-		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}",
-		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}",
+		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}.",
+		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}.",
 	},
 	"api_http_unsupported": H{
 		"vi_VN": "API chỉ có thể truy cập qua HTTPS. Đảm bảo URL bắt đầu bằng 'https://' chứ không phải 'http://'.",

@@ -91,7 +91,7 @@ func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, field
 	}
 	field["account_id"] = accid
 	field["file_format"] = fileformat
-	field["supported"] = strings.Join(supporteds, " ,")
+	field["supported"] = strings.Join(supporteds, ", ")
 	return Error(nil, field, E_unsupported_file_format, E_invalid_input)
 }
 

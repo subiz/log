@@ -153,7 +153,9 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 
 		line := now.Format("06-01-02 15:04:05") + " app " + level + " " + w.hostname + " " + accid + " " + caller + " " + msg
 		logmaplock.Lock()
-		logmap = append(logmap, line)
+		if len(logmap) < LIMIT_LOG_MAP_LENGTH {
+			logmap = append(logmap, line)
+		}
 		logmaplock.Unlock()
 	}
 

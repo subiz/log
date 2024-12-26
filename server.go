@@ -43,6 +43,9 @@ func init() {
 var logmaplock = &sync.Mutex{}
 var logmap = []string{}
 
+// 1 line => 500 charater => 100_000line =>50 mb
+const LIMIT_LOG_MAP_LENGTH = 100_000
+
 func flushLog() {
 	// flush periodically in 5s
 	for {

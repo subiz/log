@@ -1,4 +1,4 @@
-const fs = require('node:fs');
+const fs = require('node:fs')
 const ERROR_MESSAGES = require('./errors.json')
 
 let goContent = `
@@ -10,15 +10,15 @@ type H map[string]string
 var ErrorTable = map[E]H{
 `
 
-Object.keys(ERROR_MESSAGES).map(key => {
-		goContent += `	"${key}": H{
+Object.keys(ERROR_MESSAGES).map((key) => {
+	goContent += `	"${key}": H{
 		"vi_VN": "${ERROR_MESSAGES[key].vi_VN}",
 		"en_US": "${ERROR_MESSAGES[key].en_US}",
 	},
 `
 })
 
-goContent+= `}
+goContent += `}
 `
 
 fs.writeFileSync('./error_table.go', goContent)

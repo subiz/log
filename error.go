@@ -6,9 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"log/slog"
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
+
+	otelcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // special field
@@ -92,7 +97,7 @@ func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, field
 	field["account_id"] = accid
 	field["file_format"] = fileformat
 	field["supported"] = strings.Join(supporteds, ", ")
-	return Error(nil, field, E_unsupported_file_format, E_invalid_input)
+	return Error3(nil, field, E_unsupported_file_format, E_invalid_input)
 }
 
 func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
@@ -103,7 +108,7 @@ func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
 	field["ip"] = ip
 	field["_url"] = url
 	field["_ref"] = ref
-	return Error(nil, field, E_api_http_unsupported, E_invalid_input)
+	return Error3(nil, field, E_api_http_unsupported, E_invalid_input)
 }
 
 func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
@@ -114,7 +119,7 @@ func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["kb"] = kb
 	field["handle"] = handle
-	return Error(nil, field, E_invalid_kb_handle, E_invalid_input)
+	return Error3(nil, field, E_invalid_kb_handle, E_invalid_input)
 }
 
 func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
@@ -125,7 +130,7 @@ func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["kb"] = kb
 	field["handle"] = handle
-	return Error(nil, field, E_kb_handle_already_used, E_invalid_input)
+	return Error3(nil, field, E_kb_handle_already_used, E_invalid_input)
 }
 
 func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
@@ -136,7 +141,7 @@ func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["conversation_id"] = convoid
 	field["channel"] = channel
-	return Error(nil, field, E_close_public_channel, E_invalid_input)
+	return Error3(nil, field, E_close_public_channel, E_invalid_input)
 }
 
 func EPasswordTooWeak(fields ...M) *AError {
@@ -144,7 +149,7 @@ func EPasswordTooWeak(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_password_too_weak, E_invalid_input)
+	return Error3(nil, field, E_password_too_weak, E_invalid_input)
 }
 
 func EGoogle(err error, fields ...M) *AError {
@@ -152,7 +157,7 @@ func EGoogle(err error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_google_error, E_internal, E_retryable)
+	return Error3(nil, field, E_google_error, E_internal, E_retryable)
 }
 
 func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
@@ -162,7 +167,7 @@ func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
 	}
 	field["promotion_code"] = code
 	field["errors"] = errors
-	return Error(nil, field, E_invalid_promotion_code, E_invalid_input)
+	return Error3(nil, field, E_invalid_promotion_code, E_invalid_input)
 }
 
 func EInvalidCurrency(accid, cur string, fields ...M) *AError {
@@ -172,7 +177,7 @@ func EInvalidCurrency(accid, cur string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["currency"] = cur
-	return Error(nil, field, E_invalid_currency, E_invalid_input)
+	return Error3(nil, field, E_invalid_currency, E_invalid_input)
 }
 
 func EStillHaveOpenInvoice(accid string, fields ...M) *AError {
@@ -181,7 +186,7 @@ func EStillHaveOpenInvoice(accid string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["account_id"] = accid
-	return Error(nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
+	return Error3(nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
 }
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {
@@ -192,7 +197,7 @@ func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *A
 	field["account_id"] = accid
 	field["conversation_id"] = convoid
 	field["issuer_id"] = issuerid
-	return Error(nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
+	return Error3(nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
 }
 
 func ENotAMember(accid, convoid, issuerid string, fields ...M) *AError {
@@ -203,7 +208,7 @@ func ENotAMember(accid, convoid, issuerid string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["conversation_id"] = convoid
 	field["issuer_id"] = issuerid
-	return Error(nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
+	return Error3(nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
 }
 
 func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
@@ -213,7 +218,7 @@ func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["webhook_url"] = webhookurl
-	return Error(nil, field, E_invalid_webhook_url, E_invalid_input)
+	return Error3(nil, field, E_invalid_webhook_url, E_invalid_input)
 }
 
 func EInvalidOTP(username, otp string, fields ...M) *AError {
@@ -223,7 +228,7 @@ func EInvalidOTP(username, otp string, fields ...M) *AError {
 	}
 	field["username"] = username
 	field["otp"] = otp
-	return Error(nil, field, E_invalid_otp, E_invalid_input)
+	return Error3(nil, field, E_invalid_otp, E_invalid_input)
 }
 
 func EInactiveNumber(accid, number string, fields ...M) *AError {
@@ -233,7 +238,7 @@ func EInactiveNumber(accid, number string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["number"] = number
-	return Error(nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
+	return Error3(nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
 }
 
 func EBlockedNumber(accid, number string, fields ...M) *AError {
@@ -243,7 +248,7 @@ func EBlockedNumber(accid, number string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["number"] = number
-	return Error(nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
+	return Error3(nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
 }
 
 func EInviteLinkExpired(link string, fields ...M) *AError {
@@ -252,7 +257,7 @@ func EInviteLinkExpired(link string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["link"] = link
-	return Error(nil, field, E_invite_link_expired, E_invalid_input)
+	return Error3(nil, field, E_invite_link_expired, E_invalid_input)
 }
 
 func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
@@ -262,7 +267,7 @@ func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["integration_id"] = inteid
-	return Error(nil, field, E_invalid_integration, E_invalid_input)
+	return Error3(nil, field, E_invalid_integration, E_invalid_input)
 }
 
 func EMalformedRequest(accid, code string, fields ...M) *AError {
@@ -272,7 +277,7 @@ func EMalformedRequest(accid, code string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["code"] = code
-	return Error(nil, field, E_malformed_request, E_invalid_input)
+	return Error3(nil, field, E_malformed_request, E_invalid_input)
 }
 
 func EConversationEnded(accid, convoid string, fields ...M) *AError {
@@ -282,7 +287,7 @@ func EConversationEnded(accid, convoid string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["conversation_id"] = convoid
-	return Error(nil, field, E_conversation_ended, E_invalid_input)
+	return Error3(nil, field, E_conversation_ended, E_invalid_input)
 }
 
 func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AError {
@@ -292,7 +297,7 @@ func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AEr
 	}
 	field["current_length"] = currentLength
 	field["required_length"] = requiredLength
-	return Error(nil, field, E_invalid_password_length, E_invalid_input)
+	return Error3(nil, field, E_invalid_password_length, E_invalid_input)
 }
 
 func EEmailTaken(email string, fields ...M) *AError {
@@ -301,7 +306,7 @@ func EEmailTaken(email string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["email"] = email
-	return Error(nil, field, E_email_taken, E_invalid_input)
+	return Error3(nil, field, E_email_taken, E_invalid_input)
 }
 
 func EInvalidPollConnection(accid, id string, fields ...M) *AError {
@@ -311,7 +316,7 @@ func EInvalidPollConnection(accid, id string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["connection_id"] = id
-	return Error(nil, field, E_invalid_connection, E_invalid_input)
+	return Error3(nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EDeadPollConnection(accid, id string, fields ...M) *AError {
@@ -321,7 +326,7 @@ func EDeadPollConnection(accid, id string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["connection_id"] = id
-	return Error(nil, field, E_invalid_connection, E_invalid_input)
+	return Error3(nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EInvalidField(accid, name, value string, fields ...M) *AError {
@@ -332,7 +337,7 @@ func EInvalidField(accid, name, value string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["name"] = name
 	field["value"] = value
-	return Error(nil, field, E_invalid_field, E_invalid_input)
+	return Error3(nil, field, E_invalid_field, E_invalid_input)
 }
 
 func EDupplicateContactUpdate(accid, emailorphone string, fields ...M) *AError {
@@ -342,7 +347,7 @@ func EDupplicateContactUpdate(accid, emailorphone string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["prop"] = emailorphone
-	return Error(nil, field, E_dupplicate_contact_update, E_invalid_input)
+	return Error3(nil, field, E_dupplicate_contact_update, E_invalid_input)
 }
 
 func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) *AError {
@@ -354,7 +359,7 @@ func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) 
 	field["credit_id"] = creditid
 	field["credit_name"] = creditname
 	field["service"] = service
-	return Error(nil, field, E_insufficient_credit)
+	return Error3(nil, field, E_insufficient_credit)
 }
 
 func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
@@ -365,7 +370,7 @@ func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
 	field["account_id"] = accid
 	field["oa_id"] = oaid
 	field["oa_name"] = oaName
-	return Error(nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
+	return Error3(nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
 }
 
 func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError {
@@ -376,7 +381,7 @@ func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError 
 	field["account_id"] = accid
 	field["page_id"] = pageid
 	field["page_name"] = pageName
-	return Error(nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
+	return Error3(nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
 }
 
 func EInvalidGoogleToken(accid, locationId, locationName string, fields ...M) *AError {
@@ -387,7 +392,7 @@ func EInvalidGoogleToken(accid, locationId, locationName string, fields ...M) *A
 	field["account_id"] = accid
 	field["location_id"] = locationId
 	field["location_name"] = locationName
-	return Error(nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
+	return Error3(nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
 }
 
 func EServiceUnavailable(err error, fields ...M) *AError {
@@ -395,7 +400,7 @@ func EServiceUnavailable(err error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(err, field, E_service_unavailable, E_internal, E_retryable)
+	return Error3(err, field, E_service_unavailable, E_internal, E_retryable)
 }
 
 func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
@@ -405,7 +410,7 @@ func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
 	}
 	field["current_size"] = curSize
 	field["maximum_size"] = maxSize
-	return Error(nil, field, E_payload_too_large, E_invalid_input)
+	return Error3(nil, field, E_payload_too_large, E_invalid_input)
 }
 
 func ELimitExceeded(capacity int64, fields ...M) *AError {
@@ -414,7 +419,7 @@ func ELimitExceeded(capacity int64, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["capacity"] = capacity
-	return Error(nil, field, E_limit_exceeded, E_invalid_input)
+	return Error3(nil, field, E_limit_exceeded, E_invalid_input)
 }
 
 func ERateLimit(fields ...M) *AError {
@@ -422,7 +427,7 @@ func ERateLimit(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
+	return Error3(nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
 }
 
 func EMissingId(typ string, fields ...M) *AError {
@@ -430,7 +435,7 @@ func EMissingId(typ string, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_missing_id, E_invalid_input)
+	return Error3(nil, field, E_missing_id, E_invalid_input)
 }
 
 func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string, fields ...M) *AError {
@@ -441,7 +446,7 @@ func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string,
 	field["invalid_field"] = fieldname
 	field["invalid_value"] = currentvalue
 	field["msg"] = msg
-	return Error(base, field, E_invalid_input_format, E_invalid_input)
+	return Error3(base, field, E_invalid_input_format, E_invalid_input)
 }
 
 func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
@@ -450,7 +455,7 @@ func EInvalidInput(base error, required_fields []string, internal_message string
 		field = fields[0]
 	}
 	field["required_fields"] = required_fields
-	return Error(base, field, E_invalid_input)
+	return Error3(base, field, E_invalid_input)
 }
 
 func EAgentLocked(accid, agentid string, fields ...M) *AError {
@@ -460,7 +465,7 @@ func EAgentLocked(accid, agentid string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["agent_id"] = agentid
-	return Error(nil, field, E_locked_agent)
+	return Error3(nil, field, E_locked_agent)
 }
 
 func EAccountLocked(accid string, fields ...M) *AError {
@@ -469,7 +474,7 @@ func EAccountLocked(accid string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["account_id"] = accid
-	return Error(nil, field, E_locked_account)
+	return Error3(nil, field, E_locked_account)
 }
 
 func ERetry(base error, fields ...M) *AError {
@@ -477,7 +482,7 @@ func ERetry(base error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(base, field, E_internal, E_retryable)
+	return Error3(base, field, E_internal, E_retryable)
 }
 
 func EServer(base error, fields ...M) *AError {
@@ -485,7 +490,7 @@ func EServer(base error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(base, field, E_internal)
+	return Error3(base, field, E_internal)
 }
 
 func EProvider(base error, external_service, action string, fields ...M) *AError {
@@ -495,7 +500,7 @@ func EProvider(base error, external_service, action string, fields ...M) *AError
 	}
 	field["external_service"] = external_service
 	field["action"] = action
-	return Error(base, field, E_provider_failed, E_internal)
+	return Error3(base, field, E_provider_failed, E_internal)
 }
 
 func EParseInput(base error, payload []byte, fields ...M) *AError {
@@ -505,7 +510,7 @@ func EParseInput(base error, payload []byte, fields ...M) *AError {
 	}
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
-	return Error(base, field, E_invalid_input)
+	return Error3(base, field, E_invalid_input)
 }
 
 func EData(base error, payload []byte, fields ...M) *AError {
@@ -515,7 +520,7 @@ func EData(base error, payload []byte, fields ...M) *AError {
 	}
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
-	return Error(base, field, E_internal, E_transform_data, E_data_corrupted)
+	return Error3(base, field, E_internal, E_transform_data, E_data_corrupted)
 }
 
 func EInternalConnect(base error, fields ...M) *AError {
@@ -523,7 +528,7 @@ func EInternalConnect(base error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(base, field, E_internal_connection, E_internal)
+	return Error3(base, field, E_internal_connection, E_internal)
 }
 
 func EFS(base error, path string, fields ...M) *AError {
@@ -532,7 +537,7 @@ func EFS(base error, path string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["path"] = path
-	return Error(base, field, E_file_system_error, E_internal)
+	return Error3(base, field, E_file_system_error, E_internal)
 }
 
 func ELockedUser(userid string, fields ...M) *AError {
@@ -541,7 +546,7 @@ func ELockedUser(userid string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error(nil, field, E_locked_user, E_access_deny)
+	return Error3(nil, field, E_locked_user, E_access_deny)
 }
 
 func EDeny(userid string, requiredPerm string, fields ...M) *AError {
@@ -550,7 +555,7 @@ func EDeny(userid string, requiredPerm string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error(nil, field, E_access_deny)
+	return Error3(nil, field, E_access_deny)
 }
 
 func EExpiredAccessToken(fields ...M) *AError {
@@ -558,7 +563,7 @@ func EExpiredAccessToken(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_access_deny, E_access_token_expired)
+	return Error3(nil, field, E_access_deny, E_access_token_expired)
 }
 
 func EWrongPassword(fields ...M) *AError {
@@ -566,7 +571,7 @@ func EWrongPassword(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error(nil, field, E_wrong_password)
+	return Error3(nil, field, E_wrong_password)
 }
 
 func EUnsub(accid, userid string, fields ...M) *AError {
@@ -576,7 +581,7 @@ func EUnsub(accid, userid string, fields ...M) *AError {
 	}
 	field["account_id"] = accid
 	field["user_id"] = userid
-	return Error(nil, field, E_user_is_unsubscribed, E_invalid_input)
+	return Error3(nil, field, E_user_is_unsubscribed, E_invalid_input)
 }
 
 func EBanned(accid, userid string, internal_message string, fields ...M) *AError {
@@ -586,7 +591,7 @@ func EBanned(accid, userid string, internal_message string, fields ...M) *AError
 	}
 	field["account_id"] = accid
 	field["user_id"] = userid
-	return Error(nil, field, E_user_is_banned)
+	return Error3(nil, field, E_user_is_banned)
 }
 
 func ErrContext(ctx context.Context, err error) error {
@@ -600,7 +605,7 @@ func EMissing(id, typ string, fields ...M) *AError {
 	}
 	field["type"] = typ
 	field["id"] = id
-	return Error(nil, field, E_missing_resource)
+	return Error3(nil, field, E_missing_resource)
 }
 
 func IsErr(err error, code string) bool {
@@ -716,7 +721,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	stack, funcname := GetStack(1 + skipstack)
+	stack, funcname := GetStack(skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -764,7 +769,227 @@ func NewError(err error, field M, codes ...E) *AError {
 
 // Error creates an error and report it to server
 // If you dont want to report it, use NewError instead
-func Error(err error, field M, codes ...E) *AError {
+func Error(ctx context.Context, err error, code string, args ...any) *AError {
+	codestrs := strings.Split(code, ",")
+	codes := []E{}
+	for _, codestr := range codestrs {
+		codes = append(codes, E(strings.TrimSpace(codestr)))
+	}
+	outerr := NewError2(ctx, err, codes, args...)
+
+	if span := trace.SpanFromContext(ctx); span != nil {
+		span.RecordError(outerr)
+		span.SetStatus(otelcodes.Error, outerr.Error())
+	}
+
+	// args = addStack(ctx, args)
+
+	args = append(args, "log_type")
+	args = append(args, "error")
+
+	b, _ := json.Marshal(outerr)
+
+	stdoutlog(ctx, slog.LevelError, "error", args...)
+	logger.ErrorContext(ctx, string(b), args...)
+	return outerr
+}
+
+// NewError creates or wraps a new error
+func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
+	if err != nil {
+		mye, ok := err.(*AError)
+		if !ok {
+			// casting to err failed
+			// dont give up yet, fallback to json
+			errstr := err.Error()
+			if strings.HasPrefix(errstr, "#ERR ") {
+				roote := &AError{}
+				if er := json.Unmarshal([]byte(errstr[len("#ERR "):]), roote); er == nil {
+					if roote.Code != "" && roote.Class != 0 { // valid err
+						mye = roote
+					}
+				}
+			}
+		} else {
+			mye = mye.Clone()
+		}
+
+		// our error
+		if mye != nil {
+			for i := 0; i < len(args)-1; i += 2 {
+				keyi := args[i]
+				if keyi == nil {
+					continue
+				}
+				key, _ := keyi.(string)
+				if key == "" || key == "__skip_stack" {
+					continue
+				}
+				value := args[i+1]
+				if value == nil {
+					continue
+				}
+				b, _ := json.Marshal(value)
+				if key[0] == '_' {
+					if mye.XHidden == nil {
+						mye.XHidden = map[string]string{}
+					}
+					mye.XHidden[key[1:]] = string(b)
+				} else {
+					if mye.Fields == nil {
+						mye.Fields = map[string]string{}
+					}
+					mye.Fields[key] = string(b)
+				}
+
+				codestr := mye.Code
+				for _, code := range codes {
+					if codestr == "" {
+						codestr = string(code)
+						continue
+					}
+					codestr += "," + string(code)
+				}
+				mye.Code = codestr
+			}
+			return mye
+		}
+	}
+
+	outerr := &AError{Id: rand.Int63()}
+	// backward compatible, remove in future
+	outerr.Class = 400
+	codestr := ""
+	retryable := false
+	for i, code := range codes {
+		if code == E_retryable {
+			retryable = true
+		}
+		if code == E_internal {
+			outerr.Class = 500
+		}
+
+		if i == 0 {
+			codestr = string(code)
+			continue
+		}
+		codestr += "," + string(code)
+	}
+	outerr.Code = codestr
+	outerr.Fields = map[string]string{}
+	outerr.XHidden = map[string]string{}
+	outerr.Attrs = map[string]*ErrorAttribute{}
+	outerr.XHiddenAttrs = map[string]*ErrorAttribute{}
+
+	skipstack := 0
+	var overridemsg map[string]string
+	var _funcname string
+	for i := 0; i < len(args)-1; i += 2 {
+		keyi := args[i]
+		if keyi == nil {
+			continue
+		}
+		key, _ := keyi.(string)
+		if key == "" {
+			continue
+		}
+		value := args[i+1]
+		if value == nil {
+			continue
+		}
+
+		if key == "__skip_stack" {
+			skipstack = interfaceToInt(value)
+			continue // do not store
+		}
+
+		if key == "_message" {
+			overridemsg, _ = value.(map[string]string)
+		}
+
+		if key == "_function_name" {
+			_funcname, _ = value.(string)
+		}
+
+		b, _ := json.Marshal(value)
+		if key[0] == '_' {
+			outerr.XHidden[key[1:]] = string(b)
+		} else {
+			outerr.Fields[key] = string(b)
+		}
+		valtype := getValueType(value)
+		if !strings.HasPrefix(key, "_") {
+			outerr.Attrs[key] = &ErrorAttribute{
+				Key:   key,
+				Value: string(b),
+				Type:  valtype,
+			}
+		} else {
+			outerr.XHiddenAttrs[strings.TrimPrefix(key, "_")] = &ErrorAttribute{
+				Key:   strings.TrimPrefix(key, "_"),
+				Value: string(b),
+				Type:  valtype,
+			}
+		}
+	}
+
+	if err != nil {
+		outerr.XHidden["root"] = err.Error()
+		r, _ := json.Marshal(err.Error())
+		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Key: "root", Value: string(r), Type: "string"}
+	}
+
+	stack, funcname := GetStack(1 + skipstack)
+	if len(codes) > 0 {
+		msg, has := ErrorTable[codes[0]]
+		if has {
+			outerr.Message = map[string]string{
+				"En_US": formatString(msg["en_US"], nil),
+				"Vi_VN": formatString(msg["vi_VN"], nil),
+			}
+		}
+	}
+
+	// override message
+	if overridemsg != nil {
+		for code, msg := range overridemsg {
+			outerr.Message[code] = msg
+		}
+	}
+
+	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16))
+
+	// classified: database error, filesystem error, account access deny
+	// SBZ-ER72BFD5F
+	// SBZ-EQA2BFD5F
+	prefix := "Q"
+	if retryable {
+		prefix = "R"
+	}
+	outerr.Number = "SBZ-E" + prefix + errid
+	if _funcname != "" {
+		funcname = _funcname
+	}
+	if funcname != "" {
+		outerr.XHidden["function_name"] = funcname
+		fb, _ := json.Marshal(funcname)
+		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Key: "function_name", Value: string(fb), Type: "string"}
+	}
+
+	span := trace.SpanFromContext(ctx)
+	outerr.TraceId = span.SpanContext().TraceID().String()
+	outerr.SpanId = span.SpanContext().SpanID().String()
+	outerr.XStack = stack
+	outerr.XHidden["server_name"] = hostname
+
+	hb, _ := json.Marshal(hostname)
+	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Key: "server_name", Value: string(hb), Type: "string"}
+	return outerr
+}
+
+// Error creates an error and report it to server
+// If you dont want to report it, use NewError instead
+func Error3(err error, field M, codes ...E) *AError {
 	outerr := NewError(err, field, codes...)
 	b, _ := json.Marshal(outerr)
 	accid := outerr.XHidden["account_id"]
@@ -820,6 +1045,12 @@ func OverrideErrorTable(errtable map[E]H) {
 	ErrorTable = errtable
 }
 
+type ErrorAttribute struct {
+	Key   string `json:"id,omitempty"`
+	Value string `json:"value,omitempty"`
+	Type  string `json:"type,omitempty"`
+}
+
 type AError struct {
 	Id      int64             `json:"id,omitempty"`
 	Class   int32             `json:"class,omitempty"`  // remove http-code, should be derived from code
@@ -828,6 +1059,13 @@ type AError struct {
 	Fields  map[string]string `json:"fields,omitempty"`
 	XHidden map[string]string `json:"_hidden,omitempty" `
 	Message map[string]string `json:"message,omitempty"`
+
+	Attrs        map[string]*ErrorAttribute `json:"attrs,omitempty"`
+	XHiddenAttrs map[string]*ErrorAttribute `json:"_hidden_attrs,omitempty" `
+
+	XStack  string `json:"_stack,omitempty"`
+	TraceId string `json:"trace_id,omitempty" `
+	SpanId  string `json:"span_id,omitempty" `
 }
 
 func (e *AError) Clone() *AError {
@@ -942,4 +1180,24 @@ func interfaceToInt(in interface{}) int {
 		number = int(v)
 	}
 	return number
+}
+
+func getValueType(v any) string {
+	switch v.(type) {
+	case bool:
+		return "boolean"
+	case string:
+		return "string"
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		return "number"
+	case time.Duration:
+		return "number" // ns
+	case time.Time:
+		return "time"
+	case []int, []int64, []uint64, []float32, []float64, []string, []bool:
+		return "array"
+	case []byte:
+		return "bytes"
+	}
+	return "object"
 }

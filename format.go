@@ -22,7 +22,10 @@ func copyr(s string) []rune {
 
 // Format format s using map m
 // Keys of map m can be anything but must not contains spaces
-func formatString(us string, data map[string]interface{}) string {
+func formatString(us string, data map[string]any) string {
+	if data == nil {
+		data = map[string]any{}
+	}
 	s := copyr(us)
 	i := 0
 	output := ""

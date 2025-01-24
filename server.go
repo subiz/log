@@ -2,43 +2,12 @@ package log
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
-	"os/signal"
 	"sync"
 	"time"
 )
-
-var hostname string
-var logServerHost string
-var logServerSecret string
-
-func init() {
-	logServerHost = os.Getenv("LOG_SERVER_HOST")
-	if logServerHost == "" {
-		logServerHost = "https://log.subiz.net"
-	}
-	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
-	hostname, _ = os.Hostname()
-	if logServerSecret != "" {
-		go func() {
-			for {
-				time.Sleep(2 * time.Second)
-				flushLog()
-			}
-		}()
-
-		go func() {
-			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-			<-ctx.Done()
-			flushLog()
-			stop()
-		}()
-	}
-}
 
 var logmaplock = &sync.Mutex{}
 var logmap = []string{}

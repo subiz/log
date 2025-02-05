@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -55,13 +56,16 @@ func sendLog(lines []string) {
 			time.Sleep(10 * time.Second)
 			continue
 		}
+		var body []byte
 		if resp.Body != nil {
+			body, _ = io.ReadAll(resp.Body)
 			resp.Body.Close()
 		}
 		if resp.StatusCode == 200 {
 			break
 		}
-		fmt.Println("STREAM LOG ERR 19234854", resp.StatusCode, ", retrying in 5 seconds...")
+
+		fmt.Println("STREAM LOG ERR 19234854", resp.StatusCode, ": "+string(body)+" , retrying in 5 seconds...")
 		if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 			break
 		}

@@ -210,7 +210,7 @@ func SetAttributes(span trace.Span, attrs ...any) {
 	}
 }
 
-func SetAttributesContext(ctx context.Context, attrs ...any) {
+func SetSpanAttributes(ctx context.Context, attrs ...any) {
 	span := trace.SpanFromContext(ctx)
 	if span == nil {
 		return
@@ -234,10 +234,16 @@ func SetAttributesContext(ctx context.Context, attrs ...any) {
 // func  With(args ...any) *Logger {}
 // func  WithGroup(name string) *Logger {}
 
-// trace
-func Start(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+// ctx, span := log.Start(ctx, "funcname")
+// defer span.End()
+func Start(ctx context.Context, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	_, spanName := GetStack(-1)
 	return tracer.Start(ctx, spanName, opts...)
 }
+
 func addStack(ctx context.Context, args []any) []any {
 	stack, _ := GetStack(0)
 	args = append(args, "_stack")

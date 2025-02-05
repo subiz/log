@@ -112,7 +112,7 @@ func TestNoSpanError(t *testing.T) {
 
 func TestSpanError(t *testing.T) {
 	defer log.Shutdown()
-	ctx, span := log.Start(context.Background(), "terrorst")
+	ctx, span := log.Start(context.Background())
 	defer span.End()
 
 	// err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
@@ -123,16 +123,16 @@ func TestSpanError(t *testing.T) {
 
 func TestSpanInfo(t *testing.T) {
 	defer log.Shutdown()
-	ctx, span := log.Start(context.Background(), "terinfo")
+	ctx, span := log.Start(context.Background())
 	defer span.End()
 
 	// err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
-	log.SetAttributesContext(ctx, "account_id", "abcsble")
+	log.SetSpanAttributes(ctx, "account_id", "abcsble")
 	log.InfoContext(ctx, "xin chao the gioi")
 }
 
 func parent(ctx context.Context) {
-	ctx, span := log.Start(ctx, "the-parent")
+	ctx, span := log.Start(ctx)
 	defer span.End()
 
 	log.SetAttributes(span, "isTrue", true, "stringAttr", "hi!")
@@ -143,7 +143,7 @@ func parent(ctx context.Context) {
 }
 
 func child(ctx context.Context) {
-	ctx, span := log.Start(ctx, "the-child")
+	ctx, span := log.Start(ctx)
 	defer span.End()
 
 	log.InfoContext(ctx, "hello world", "user-id", "string", "user-count", 1995)
@@ -152,7 +152,7 @@ func child(ctx context.Context) {
 func TestTrace(t *testing.T) {
 	defer log.Shutdown()
 
-	ctx, span := log.Start(context.Background(), "the-main")
+	ctx, span := log.Start(context.Background())
 	defer span.End()
 
 	parent(ctx)
@@ -160,8 +160,14 @@ func TestTrace(t *testing.T) {
 
 func TestTrack(t *testing.T) {
 	defer log.Shutdown()
-
-	ctx, span := log.Start(context.Background(), "the-track")
+	ctx, span := log.Start(context.Background())
 	defer span.End()
 	log.Track(ctx, "dup-email", "account_id", "sble4")
+}
+
+func TestSpanName(t *testing.T) {
+	_, spanName := log.GetStack(-2)
+	if spanName != "github.com/subiz/log_test.TestSpanName" {
+		t.Errorf("SHOULDEQ, GOT %s", spanName)
+	}
 }

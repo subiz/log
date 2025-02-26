@@ -129,6 +129,7 @@ func TestSpanInfo(t *testing.T) {
 	// err := log.EInvalidZaloToken("thanh", "3290323", "Dayladau") // A()
 	log.SetSpanAttributes(ctx, "account_id", "abcsble")
 	log.InfoContext(ctx, "xin chao the gioi")
+	log.Info(ctx, "xin chao ca nuoc")
 }
 
 func parent(ctx context.Context) {

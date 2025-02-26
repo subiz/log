@@ -1,8 +1,10 @@
 package log
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -43,7 +45,32 @@ func Err(accid string, err error, v ...interface{}) error {
 	return outerr
 }
 
-func Info(accid string, v ...interface{}) error {
+func Info(v ...any) error {
+	if len(v) == 0 {
+		return nil
+	}
+
+	var accid string
+	v0 := v[0]
+	switch t := v0.(type) {
+	case context.Context:
+		ctx := t
+		var msg = ""
+		v = v[1:]
+		if len(v) >= 1 {
+			msg = fmt.Sprintf("%v", v[0])
+			v = v[1:]
+		}
+		args := addStack(ctx, v)
+		stdoutlog(ctx, slog.LevelInfo, msg, args...)
+		logger.InfoContext(ctx, msg, args...)
+		return nil
+	case string:
+		accid = t
+		v = v[1:]
+	default:
+	}
+
 	format := strings.Repeat("%v ", len(v))
 	m := fmt.Sprintf(format, v...)
 	_, err := w.writeAndRetry(accid, LOG_INFO, m)

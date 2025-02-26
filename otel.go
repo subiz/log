@@ -58,6 +58,7 @@ func init() {
 	logger = newLogger("")
 	traceProvider = newTraceProvider()
 	tracer = traceProvider.Tracer("")
+	otel.SetTracerProvider(traceProvider)
 }
 
 var defaultsloghandler = slog.Default().Handler()
@@ -76,7 +77,7 @@ func Shutdown() {
 	}
 }
 
-func Init(scope string, res *resource.Resource) {
+func ManualInit(scope string, res *resource.Resource) {
 	loggerProvider = newLoggerProvider(res)
 	// Register as global logger provider so that it can be accessed global.LoggerProvider.
 	// Most log bridges use the global logger provider as default.

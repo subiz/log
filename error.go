@@ -98,7 +98,7 @@ const E_zalo_app_missing_permission = "zalo_app_missing_permission"
 const E_zalo_zns_user_rejected = "zalo_zns_user_rejected"
 const E_zalo_zns_oa_quota_exceeded = "zalo_zns_oa_quota_exceeded"
 const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
-const E_zalo_zns_template_create_quota_exceeded = "zalo_zns_template_create_quota_exceeded"
+const E_zalo_zns_template_manage_quota_exceeded = "zalo_zns_template_manage_quota_exceeded"
 
 func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
 	var field = M{}

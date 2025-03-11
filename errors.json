@@ -260,8 +260,8 @@
 		"en_US": "Zalo app version is not supported. Users need to update to the latest version."
 	},
 	"zalo_account_locked": {
-		"vi_VN": "Tài khoản zalo official account đã bị khoá, vui lòng liên hệ Zalo để mở lại",
-		"en_US": "Zalo official account has been locked, please contact Zalo to reopen"
+		"vi_VN": "Tài khoản zalo official account đã bị khoá hoặc chưa được sử dụng tính năng này, vui lòng liên hệ Zalo để mở lại",
+		"en_US": "Zalo official account has been locked or un-authorized, please contact Zalo to reopen"
 	},
 	"zalo_access_deny": {
 		"vi_VN": "OA hoặc ứng dụng chưa được cấp quyền thực hiện hành động này.",
@@ -288,12 +288,12 @@
 		"en_US": "User refuses to receive ZNS"
 	},
 	"zalo_zns_oa_quota_exceeded": {
-		"vi_VN": "OA đã vượt giới hạn gửi tin ZNS",
-		"en_US": "OA has exceeded the ZNS message sending limit"
+			"vi_VN": "OA đã vượt giới hạn gửi tin ZNS. Vui lòng thử lại vào ngày hôm sau",
+			"en_US": "OA has exceeded the ZNS message sending limit. Please try again tomorrow"
 	},
 	"zalo_zns_template_quota_exceeded": {
-		"vi_VN": "Bạn đã vượt giới hạn gửi tin ZNS cho mẫu ZNS này",
-		"en_US": "You has exceeded the ZNS sending limit for this ZNS template"
+			"vi_VN": "Bạn đã vượt giới hạn gửi tin ZNS cho mẫu ZNS này. Vui lòng thử lại vào ngày hôm sau",
+			"en_US": "You has exceeded the ZNS sending limit for this ZNS template. Please try again tomorrow"
 	},
 	"zalo_zns_template_manage_quota_exceeded": {
 		"vi_VN": "Number of template creation/editing or attachment uploads exceeds daily quota",

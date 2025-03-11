@@ -88,6 +88,17 @@ const E_google_error E = "google_error"
 const E_close_public_channel E = "close_public_channel"
 const E_invalid_kb_handle E = "invalid_kb_handle"
 const E_kb_handle_already_used = "kb_handle_already_used"
+const E_zalo_unsupported_version = "zalo_unsupported_version"
+const E_zalo_account_locked = "zalo_account_locked"
+const E_zalo_access_deny = "zalo_access_deny"
+const E_zalo_zns_test_invalid_number = "zalo_zns_test_invalid_number"
+const E_zalo_invalid_zns_template = "zalo_invalid_zns_template"
+const E_zalo_zns_send_at_night = "zalo_zns_send_at_night"
+const E_zalo_app_missing_permission = "zalo_app_missing_permission"
+const E_zalo_zns_user_rejected = "zalo_zns_user_rejected"
+const E_zalo_zns_oa_quota_exceeded = "zalo_zns_oa_quota_exceeded"
+const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
+const E_zalo_zns_template_create_quota_exceeded = "zalo_zns_template_create_quota_exceeded"
 
 func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
 	var field = M{}

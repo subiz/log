@@ -3,11 +3,13 @@ package log_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	log "github.com/subiz/log"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func A() error {
@@ -170,5 +172,28 @@ func TestSpanName(t *testing.T) {
 	_, spanName := log.GetStack(-2)
 	if spanName != "github.com/subiz/log_test.TestSpanName" {
 		t.Errorf("SHOULDEQ, GOT %s", spanName)
+	}
+}
+
+func TestLoopLog(t *testing.T) {
+	defer log.Shutdown()
+	i := 0
+	for {
+		if i % 100 == 99 {
+			time.Sleep(10 * time.Second)
+		}
+		i++
+		time.Sleep(10 * time.Millisecond)
+		ctx, span := log.Start(context.Background())
+		spanCtx := trace.SpanContextFromContext(ctx)
+
+		fmt.Println("SSSS", spanCtx.TraceID().String())
+    // if spanCtx.HasTraceID() {
+		// traceID := spanCtx.TraceID()
+		// return traceID.String()
+    //}
+
+		log.Track(ctx, "test", "account_id", "sble4", "i", "["+strconv.Itoa(i)+"]", "tag", "llm")
+		span.End()
 	}
 }

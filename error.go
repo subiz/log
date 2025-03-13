@@ -99,6 +99,7 @@ const E_zalo_zns_user_rejected = "zalo_zns_user_rejected"
 const E_zalo_zns_oa_quota_exceeded = "zalo_zns_oa_quota_exceeded"
 const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
 const E_zalo_zns_template_manage_quota_exceeded = "zalo_zns_template_manage_quota_exceeded"
+const E_timeout = "timeout"
 
 func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
 	var field = M{}
@@ -494,6 +495,14 @@ func ERetry(base error, fields ...M) *AError {
 		field = fields[0]
 	}
 	return Error3(base, field, E_internal, E_retryable)
+}
+
+func ETimeout(fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error3(base, field, E_timeout, E_internal, E_retryable)
 }
 
 func EServer(base error, fields ...M) *AError {

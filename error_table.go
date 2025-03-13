@@ -126,8 +126,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Connection to Facebook has expired. Please reintegrate fanpage {page_name} ({page_id}) to continue",
 	},
 	"invalid_field": H{
-		"vi_VN": "Trường dữ liệu {name} không hợp lệ. Vui lòng thử lại với giá trị khác",
-		"en_US": "The field {name} is not valid. Please try again with a different value",
+		"vi_VN": "Trường dữ liệu {name} bị trống hoặc không hợp lệ. Vui lòng thử giá trị khác",
+		"en_US": "The field {name} is empty or not valid. Please try different value",
 	},
 	"invalid_zalo_token": H{
 		"vi_VN": "Kết nối tới Zalo đã hết hạn. Vui lòng tích hợp lại OA {oa_name} ({oa_id}) để tiếp tục",
@@ -256,5 +256,53 @@ var ErrorTable = map[E]H{
 	"wrong_password": H{
 		"vi_VN": "Sai mật khẩu",
 		"en_US": "Wrong password",
+	},
+	"zalo_unsupported_version": H{
+		"vi_VN": "Phiên bản Zalo app không được hỗ trợ. Người dùng cần cập nhật phiên bản mới nhất",
+		"en_US": "Zalo app version is not supported. Users need to update to the latest version.",
+	},
+	"zalo_account_locked": H{
+		"vi_VN": "Tài khoản zalo official account đã bị khoá hoặc chưa được sử dụng tính năng này, vui lòng liên hệ Zalo để mở lại",
+		"en_US": "Zalo official account has been locked or un-authorized, please contact Zalo to reopen",
+	},
+	"zalo_access_deny": H{
+		"vi_VN": "OA hoặc ứng dụng chưa được cấp quyền thực hiện hành động này.",
+		"en_US": "The OA or ZNS sending application is not authorized to perform this action.",
+	},
+	"zalo_zns_test_invalid_number": H{
+		"vi_VN": "Template ZNS chỉ có thể được gửi thử cho quản trị viên của OA",
+		"en_US": "ZNS test template can only be sent to managers of OA",
+	},
+	"zalo_invalid_zns_template": H{
+		"vi_VN": "Mẫu ZNS này không hoạt động, vui lòng thử với mẫu ZNS khác",
+		"en_US": "The ZNS template not active, please try with other ZNS template",
+	},
+	"zalo_zns_send_at_night": H{
+		"vi_VN": "Mẫu ZNS này không được phép gửi vào ban đêm (từ 22h-6h)",
+		"en_US": "This template cannot be sent at night (10PM-6AM)",
+	},
+	"zalo_app_missing_permission": H{
+		"vi_VN": "Subiz không được phân đủ quyền để thực hiện hành động này. Vui lòng cấp lại quyền ở giao diện tích hợp OA",
+		"en_US": "Subiz does not have sufficient permissions to perform this action. Please re-grant permissions in the OA integration page",
+	},
+	"timeout": H{
+		"vi_VN": "Hệ thống không phản hồi trong thời gian dự kiến. Vui lòng thử lại sau",
+		"en_US": "The system fails to respond within the expected time limit. Please try again later",
+	},
+	"zalo_zns_user_rejected": H{
+		"vi_VN": "Người dùng từ chối nhận ZNS",
+		"en_US": "User refuses to receive ZNS",
+	},
+	"zalo_zns_oa_quota_exceeded": H{
+		"vi_VN": "OA đã vượt giới hạn gửi tin ZNS. Vui lòng thử lại vào ngày hôm sau",
+		"en_US": "OA has exceeded the ZNS message sending limit. Please try again tomorrow",
+	},
+	"zalo_zns_template_quota_exceeded": H{
+		"vi_VN": "Bạn đã vượt giới hạn gửi tin ZNS cho mẫu ZNS này. Vui lòng thử lại vào ngày hôm sau",
+		"en_US": "You has exceeded the ZNS sending limit for this ZNS template. Please try again tomorrow",
+	},
+	"zalo_zns_template_manage_quota_exceeded": H{
+		"vi_VN": "Number of template creation/editing or attachment uploads exceeds daily quota",
+		"en_US": "Số lượng tạo/edit template hoặc upload attachment vượt quá daily quota",
 	},
 }

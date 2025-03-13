@@ -283,17 +283,21 @@
 		"vi_VN": "Subiz không được phân đủ quyền để thực hiện hành động này. Vui lòng cấp lại quyền ở giao diện tích hợp OA",
 		"en_US": "Subiz does not have sufficient permissions to perform this action. Please re-grant permissions in the OA integration page"
 	},
+	"timeout": {
+		"vi_VN": "Hệ thống không phản hồi trong thời gian dự kiến. Vui lòng thử lại sau",
+		"en_US": "The system fails to respond within the expected time limit. Please try again later"
+	},
 	"zalo_zns_user_rejected": {
 		"vi_VN": "Người dùng từ chối nhận ZNS",
 		"en_US": "User refuses to receive ZNS"
 	},
 	"zalo_zns_oa_quota_exceeded": {
-			"vi_VN": "OA đã vượt giới hạn gửi tin ZNS. Vui lòng thử lại vào ngày hôm sau",
-			"en_US": "OA has exceeded the ZNS message sending limit. Please try again tomorrow"
+		"vi_VN": "OA đã vượt giới hạn gửi tin ZNS. Vui lòng thử lại vào ngày hôm sau",
+		"en_US": "OA has exceeded the ZNS message sending limit. Please try again tomorrow"
 	},
 	"zalo_zns_template_quota_exceeded": {
-			"vi_VN": "Bạn đã vượt giới hạn gửi tin ZNS cho mẫu ZNS này. Vui lòng thử lại vào ngày hôm sau",
-			"en_US": "You has exceeded the ZNS sending limit for this ZNS template. Please try again tomorrow"
+		"vi_VN": "Bạn đã vượt giới hạn gửi tin ZNS cho mẫu ZNS này. Vui lòng thử lại vào ngày hôm sau",
+		"en_US": "You has exceeded the ZNS sending limit for this ZNS template. Please try again tomorrow"
 	},
 	"zalo_zns_template_manage_quota_exceeded": {
 		"vi_VN": "Number of template creation/editing or attachment uploads exceeds daily quota",

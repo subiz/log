@@ -328,7 +328,15 @@ func Track(ctx context.Context, code string, args ...any) {
 
 	wrapargs = append(wrapargs, args...)
 
-	wrapargs = addStack(ctx, wrapargs)
+	stack, funcname := GetStack(0)
+	wrapargs = append(wrapargs, "_stack")
+	wrapargs = append(wrapargs, stack)
+
+	wrapargs = append(wrapargs, "function_name")
+	wrapargs = append(wrapargs, funcname)
+
+	wrapargs = append(wrapargs, "server_name")
+	wrapargs = append(wrapargs, hostname)
 
 	stdoutlog(ctx, slog.LevelInfo, "TRK-"+code, wrapargs...)
 	logger.InfoContext(ctx, "TRK-"+code, wrapargs...)

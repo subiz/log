@@ -17,6 +17,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "API chỉ có thể truy cập qua HTTPS. Đảm bảo URL bắt đầu bằng 'https://' chứ không phải 'http://'.",
 		"en_US": "The API is only accessible over HTTPS. Ensure the URL starts with 'https://' and not 'http://'.",
 	},
+	"meta_custom_audience_term_consent_required": H{
+		"vi_VN": "Để tạo hoặc chỉnh sửa đối tượng của meta, vui lòng đồng ý với Điều khoản Đối tượng tuỳ chỉnh tại https://business.facebook.com/ads/manage/customaudiences/tos/?act={ad_account_id}",
+		"en_US": "To create or edit an meta audience, please agree to the Custom Audience Terms at https://business.facebook.com/ads/manage/customaudiences/tos/?act={ad_account_id}",
+	},
 	"kb_handle_already_used": H{
 		"vi_VN": "Địa chỉ đã được sử dụng, vui lòng chọn địa chỉ khác",
 		"en_US": "Handle already in use, please choose another handle",

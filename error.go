@@ -31,6 +31,7 @@ const E_none = ""
 const E_invalid_input E = "invalid_input"
 const E_unsupported_file_format E = "unsupported_file_format"
 const E_api_http_unsupported E = "api_http_unsupported"
+const E_meta_custom_audience_term_consent_required = "meta_custom_audience_term_consent_required"
 const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
@@ -121,6 +122,15 @@ func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
 	field["_url"] = url
 	field["_ref"] = ref
 	return Error3(nil, field, E_api_http_unsupported, E_invalid_input)
+}
+
+func EMetaCustomAudienceTermConsentRequired(adaccid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["ad_account_id"] = adaccid
+	return Error3(nil, field, E_meta_custom_audience_term_consent_required, E_invalid_input)
 }
 
 func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {

@@ -13,12 +13,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	_ "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -113,8 +111,8 @@ func newTraceProvider() *sdktrace.TracerProvider {
 	r, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
-			semconv.SchemaURL,
-			semconv.HostName(hostname),
+			"",
+			attribute.String("host.name", hostname),
 		),
 	)
 	if err != nil {
@@ -128,8 +126,8 @@ func newTraceProvider() *sdktrace.TracerProvider {
 func newLoggerProvider(res *resource.Resource) *log.LoggerProvider {
 	hostname, _ := os.Hostname()
 	defres, err := resource.Merge(resource.Default(),
-		resource.NewWithAttributes(semconv.SchemaURL,
-			semconv.HostName(hostname),
+		resource.NewWithAttributes("",
+			attribute.String("host.name", hostname),
 		))
 	if err != nil {
 		panic(err)
@@ -323,20 +321,14 @@ func Track(ctx context.Context, code string, args ...any) {
 
 	wrapargs := []any{}
 
-	wrapargs = append(wrapargs, "log_type")
-	wrapargs = append(wrapargs, "track")
+	wrapargs = append(wrapargs, "log_type", "track")
 
 	wrapargs = append(wrapargs, args...)
 
 	stack, funcname := GetStack(0)
-	wrapargs = append(wrapargs, "_stack")
-	wrapargs = append(wrapargs, stack)
-
-	wrapargs = append(wrapargs, "function_name")
-	wrapargs = append(wrapargs, funcname)
-
-	wrapargs = append(wrapargs, "server_name")
-	wrapargs = append(wrapargs, hostname)
+	wrapargs = append(wrapargs, "_stack", stack)
+	wrapargs = append(wrapargs, "function_name", funcname)
+	wrapargs = append(wrapargs, "server_name", hostname)
 
 	stdoutlog(ctx, slog.LevelInfo, "TRK-"+code, wrapargs...)
 	logger.InfoContext(ctx, "TRK-"+code, wrapargs...)

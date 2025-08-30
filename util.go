@@ -79,7 +79,7 @@ func GetStack(skip int) (string, string) {
 }
 
 func Stack() string {
-	stack, _ := GetStack(0)
+	stack, _ := GetStack(-1)
 	return stack
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "@subiz/log",
-  "version": "1.0.8",
-  "description": "Dead simple logging package for streaming log to syslog Dependency free",
+  "version": "1.0.9",
+  "description": "Dead simple logging package for streaming log to syslog",
   "main": "main.js",
   "scripts": {
     "build": "node build.js"

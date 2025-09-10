@@ -9,6 +9,14 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'",
 	},
+	"invalid_url": H{
+		"vi_VN": "URL không hợp lệ, vui lòng xem lại hoặc chọn URL khác",
+		"en_US": "Invalid URL, please check again or choose a different URL.",
+	},
+	"unverified_domain": H{
+		"vi_VN": "Tên miền {domain} chưa được xác thực, vui lòng xác thực hoặc chọn một tên miền khác",
+		"en_US": "The domain {domain} has not been verified, please verify it or choose another domain.",
+	},
 	"unsupported_file_format": H{
 		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}.",
 		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}.",
@@ -158,8 +166,8 @@ var ErrorTable = map[E]H{
 		"en_US": "Request denied due to exceeding allowed limit. You need to slow down",
 	},
 	"invalid_domain": H{
-		"vi_VN": "",
-		"en_US": "Something wrong, please try again later",
+		"vi_VN": "Tên miền {domain} không hợp lệ, vui lòng chọn tên miền khác",
+		"en_US": "The domain {domain} is invalid, please choose another domain.",
 	},
 	"missing_id": H{
 		"vi_VN": "Lỗi định danh {type} không hợp lệ. Vui lòng cung cấp đầy đủ định danh hoặc liên hệ Subiz để được hỗ trợ",

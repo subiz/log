@@ -29,6 +29,8 @@ func (e E) String() string {
 
 const E_none = ""
 const E_invalid_input E = "invalid_input"
+const E_invalid_url E = "invalid_url"
+const E_unverified_domain E = "unverified_domain"
 const E_unsupported_file_format E = "unsupported_file_format"
 const E_api_http_unsupported E = "api_http_unsupported"
 const E_meta_custom_audience_term_consent_required = "meta_custom_audience_term_consent_required"
@@ -101,6 +103,36 @@ const E_zalo_zns_oa_quota_exceeded = "zalo_zns_oa_quota_exceeded"
 const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
 const E_zalo_zns_template_manage_quota_exceeded = "zalo_zns_template_manage_quota_exceeded"
 const E_timeout = "timeout"
+
+func EInvalidUrl(accid, url string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["url"] = url
+	return Error3(nil, field, E_invalid_url, E_invalid_input)
+}
+
+func EUnverifiedDomain(accid, domain string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["domain"] = domain
+	return Error3(nil, field, E_unverified_domain, E_invalid_domain, E_invalid_url, E_invalid_input)
+}
+
+func EInvalidDomain(accid, domain string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["account_id"] = accid
+	field["domain"] = domain
+	return Error3(nil, field, E_invalid_domain, E_invalid_url, E_invalid_input)
+}
 
 func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
 	var field = M{}

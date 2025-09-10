@@ -13,29 +13,28 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/log/global"
-	"go.opentelemetry.io/otel/sdk/log"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
-var loggerProvider *log.LoggerProvider
+var loggerProvider *sdklog.LoggerProvider
 var traceProvider *sdktrace.TracerProvider
 var logger *slog.Logger
 var tracer trace.Tracer
-
 var hostname string
 var logServerHost string
 var logServerSecret string
 
 func init() {
+	hostname, _ = os.Hostname()
+
 	logServerHost = os.Getenv("LOG_SERVER_HOST")
 	if logServerHost == "" {
 		logServerHost = "https://log.subiz.net"
 	}
 	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
-	hostname, _ = os.Hostname()
 	if logServerSecret != "" {
 		go func() {
 			for {
@@ -53,17 +52,14 @@ func init() {
 	}
 
 	loggerProvider = newLoggerProvider(nil)
-	logger = newLogger("")
+	scope := ""
+	logger = slog.New(otelslog.NewHandler(scope, otelslog.WithLoggerProvider(loggerProvider)))
 	traceProvider = newTraceProvider()
 	tracer = traceProvider.Tracer("")
 	otel.SetTracerProvider(traceProvider)
 }
 
 var defaultsloghandler = slog.Default().Handler()
-
-func newLogger(scope string) *slog.Logger {
-	return slog.New(otelslog.NewHandler(scope, otelslog.WithLoggerProvider(loggerProvider)))
-}
 
 func Shutdown() {
 	if err := loggerProvider.Shutdown(context.Background()); err != nil {
@@ -73,21 +69,6 @@ func Shutdown() {
 	if err := traceProvider.Shutdown(context.Background()); err != nil {
 		fmt.Println(err)
 	}
-}
-
-func ManualInit(scope string, res *resource.Resource) {
-	loggerProvider = newLoggerProvider(res)
-	// Register as global logger provider so that it can be accessed global.LoggerProvider.
-	// Most log bridges use the global logger provider as default.
-	// If the global logger provider is not set then a no-op implementation
-	// is used, which fails to generate data.
-	global.SetLoggerProvider(loggerProvider)
-
-	// Create an *slog.Logger and use it in your application.
-	logger = newLogger(scope)
-	traceProvider = newTraceProvider()
-	otel.SetTracerProvider(traceProvider)
-	tracer = traceProvider.Tracer(scope)
 }
 
 func newTraceProvider() *sdktrace.TracerProvider {
@@ -107,13 +88,9 @@ func newTraceProvider() *sdktrace.TracerProvider {
 	}
 
 	// Ensure default SDK resources and the required service name are set.
-	hostname, _ := os.Hostname()
 	r, err := resource.Merge(
 		resource.Default(),
-		resource.NewWithAttributes(
-			"",
-			attribute.String("host.name", hostname),
-		),
+		resource.NewWithAttributes("", attribute.String("host.name", hostname)),
 	)
 	if err != nil {
 		panic(err)
@@ -123,19 +100,16 @@ func newTraceProvider() *sdktrace.TracerProvider {
 	return sdktrace.NewTracerProvider(opts...)
 }
 
-func newLoggerProvider(res *resource.Resource) *log.LoggerProvider {
-	hostname, _ := os.Hostname()
+func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 	defres, err := resource.Merge(resource.Default(),
-		resource.NewWithAttributes("",
-			attribute.String("host.name", hostname),
-		))
+		resource.NewWithAttributes("", attribute.String("host.name", hostname)))
 	if err != nil {
 		panic(err)
 	}
 
-	opts := []log.LoggerProviderOption{log.WithResource(defres)}
+	opts := []sdklog.LoggerProviderOption{sdklog.WithResource(defres)}
 	if res != nil {
-		opts = append(opts, log.WithResource(res))
+		opts = append(opts, sdklog.WithResource(res))
 	}
 	if logServerSecret != "" {
 		httpexporter, err := otlploghttp.New(context.Background(),
@@ -144,12 +118,12 @@ func newLoggerProvider(res *resource.Resource) *log.LoggerProvider {
 		if err != nil {
 			panic(err)
 		}
-		opts = append(opts, log.WithProcessor(log.NewBatchProcessor(httpexporter)))
+		opts = append(opts, sdklog.WithProcessor(sdklog.NewBatchProcessor(httpexporter)))
 	}
 
 	// stdoutexporter := &slogExporter{}
 	// opts = append(opts, log.WithProcessor(log.NewBatchProcessor(stdoutexporter)))
-	return log.NewLoggerProvider(opts...)
+	return sdklog.NewLoggerProvider(opts...)
 }
 
 func DebugContext(ctx context.Context, msg string, args ...any) {

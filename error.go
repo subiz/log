@@ -706,7 +706,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	outerr := &AError{Id: rand.Int63()}
+	outerr := &AError{Id: int64(rand.Int31())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -886,7 +886,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 	}
 
-	outerr := &AError{Id: rand.Int63()}
+	outerr := &AError{Id: int64(rand.Int31())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""

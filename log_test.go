@@ -3,6 +3,7 @@ package log_test
 import (
 	"context"
 	"fmt"
+	"hash/crc32"
 	"strconv"
 	"strings"
 	"testing"
@@ -169,7 +170,7 @@ func TestTrack(t *testing.T) {
 }
 
 func TestSpanName(t *testing.T) {
-	_, spanName := log.GetStack(-2)
+	_, spanName, _ := log.GetStack(-2)
 	if spanName != "github.com/subiz/log_test.TestSpanName" {
 		t.Errorf("SHOULDEQ, GOT %s", spanName)
 	}
@@ -179,7 +180,7 @@ func TestLoopLog(t *testing.T) {
 	defer log.Shutdown()
 	i := 0
 	for {
-		if i % 100 == 99 {
+		if i%100 == 99 {
 			time.Sleep(10 * time.Second)
 		}
 		i++
@@ -188,12 +189,20 @@ func TestLoopLog(t *testing.T) {
 		spanCtx := trace.SpanContextFromContext(ctx)
 
 		fmt.Println("SSSS", spanCtx.TraceID().String())
-    // if spanCtx.HasTraceID() {
+		// if spanCtx.HasTraceID() {
 		// traceID := spanCtx.TraceID()
 		// return traceID.String()
-    //}
+		//}
 
 		log.Track(ctx, "test", "account_id", "sble4", "i", "["+strconv.Itoa(i)+"]", "tag", "llm")
 		span.End()
 	}
+}
+
+func TestGenErrCode(t *testing.T) {
+	// 3692131565 10
+	// D48E40F6   16
+	// 3E12T7D    32
+	// 1P276Y5    34
+	fmt.Println(strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte("Invoke/service_unavailable,internal,retryable"))), 10)))
 }

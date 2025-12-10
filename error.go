@@ -19,7 +19,7 @@ import (
 // special field
 // + code
 // + payload_string
-type M map[string]interface{}
+type M map[string]any
 
 type E string
 
@@ -783,7 +783,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHidden["root"] = err.Error()
 	}
 
-	stack, funcname := GetStack(skipstack)
+	stack, funcname, funcstack := GetStack(skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -805,8 +805,6 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16))
-
 	// classified: database error, filesystem error, account access deny
 	// SBZ-ER72BFD5F
 	// SBZ-EQA2BFD5F
@@ -814,7 +812,6 @@ func NewError(err error, field M, codes ...E) *AError {
 	if retryable {
 		prefix = "R"
 	}
-	outerr.Number = "SBZ-E" + prefix + errid
 	if funcname != "" {
 		outerr.XHidden["function_name"] = funcname
 	}
@@ -824,6 +821,9 @@ func NewError(err error, field M, codes ...E) *AError {
 			outerr.XHidden["function_name"] = funcname
 		}
 	}
+
+	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostname+"/"+funcstack+"/"+outerr.Code))), 16))
+	outerr.Number = "SBZ-E" + prefix + errid
 	outerr.XHidden["stack"] = stack
 	outerr.XHidden["server_name"] = hostname
 	return outerr
@@ -1001,7 +1001,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Key: "root", Value: string(r), Type: "string"}
 	}
 
-	stack, funcname := GetStack(1 + skipstack)
+	stack, funcname, funcstack := GetStack(1 + skipstack)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -1019,16 +1019,6 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 	}
 
-	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(funcname+"/"+outerr.Code))), 16))
-
-	// classified: database error, filesystem error, account access deny
-	// SBZ-ER72BFD5F
-	// SBZ-EQA2BFD5F
-	prefix := "Q"
-	if retryable {
-		prefix = "R"
-	}
-	outerr.Number = "SBZ-E" + prefix + errid
 	if _funcname != "" {
 		funcname = _funcname
 	}
@@ -1037,6 +1027,16 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		fb, _ := json.Marshal(funcname)
 		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Key: "function_name", Value: string(fb), Type: "string"}
 	}
+
+	// classified: database error, filesystem error, account access deny
+	// SBZ-ER72BFD5F
+	// SBZ-EQA2BFD5F
+	prefix := "Q"
+	if retryable {
+		prefix = "R"
+	}
+	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostname+"/"+funcstack+"/"+outerr.Code))), 16))
+	outerr.Number = "SBZ-E" + prefix + errid
 
 	span := trace.SpanFromContext(ctx)
 	outerr.TraceId = span.SpanContext().TraceID().String()
@@ -1095,7 +1095,7 @@ func WrapStack(err error, skip int) error {
 		return err
 	}
 
-	stack, _ := GetStack(skip)
+	stack, _, _ := GetStack(skip)
 	if mye.XHidden == nil {
 		mye.XHidden = map[string]string{}
 	}

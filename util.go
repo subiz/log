@@ -37,18 +37,21 @@ func trimToPrefix(str, prefix string) string {
 // it will ignore all system path, path which is vendor is striped to /vendor/
 // skip: number of stack ignored
 // returns stack and function name
-func GetStack(skip int) (string, string) {
+func GetStack(skip int) (string, string, string) {
 	stack := make([]uintptr, 10)
 	var sb strings.Builder
 	// skip one system stack, the this current stack line
 	length := runtime.Callers(4+skip, stack[:])
 	funcname := ""
 	first := -1
+	funcstack := ""
 	for i := 0; i < length; i++ {
 		pc := stack[i]
 		// pc - 1 because the program counters we use are usually return addresses,
 		// and we want to show the line that corresponds to the function call
 		function := runtime.FuncForPC(pc - 1)
+		// funcstack=/github.com/subiz/log.EServer | github.com/subiz/log_test.E | github.com/subiz/log_test.DDDDDD | github.com/subiz/log_test.CCCCCC | github.com/subiz/log_test.B | github.com/subiz/log_test.A | github.com/subiz/log_test.TestError | testing.tRunner | runtime.goexit
+		funcstack += function.Name() + " | "
 		if i == 0 {
 			funcname = function.Name()
 		}
@@ -75,11 +78,11 @@ func GetStack(skip int) (string, string) {
 		}
 		sb.WriteString(file + ":" + strconv.Itoa(line))
 	}
-	return sb.String(), funcname
+	return sb.String(), funcname, funcstack
 }
 
 func Stack() string {
-	stack, _ := GetStack(-1)
+	stack, _, _ := GetStack(-1)
 	return stack
 }
 

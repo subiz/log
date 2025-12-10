@@ -213,12 +213,12 @@ func Start(ctx context.Context, opts ...trace.SpanStartOption) (context.Context,
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	_, spanName := GetStack(-1)
+	_, spanName, _ := GetStack(-1)
 	return tracer.Start(ctx, spanName, opts...)
 }
 
 func addStack(ctx context.Context, args []any) []any {
-	stack, _ := GetStack(0)
+	stack, _, _ := GetStack(0)
 	args = append(args, "_stack")
 	args = append(args, stack)
 	return args
@@ -299,7 +299,7 @@ func Track(ctx context.Context, code string, args ...any) {
 
 	wrapargs = append(wrapargs, args...)
 
-	stack, funcname := GetStack(0)
+	stack, funcname, _ := GetStack(-1)
 	wrapargs = append(wrapargs, "_stack", stack)
 	wrapargs = append(wrapargs, "function_name", funcname)
 	wrapargs = append(wrapargs, "server_name", hostname)

@@ -33,10 +33,18 @@ func trimToPrefix(str, prefix string) string {
 	return str[i:]
 }
 
-// getStack returns 10 closest stacktrace, included file paths and line numbers
-// it will ignore all system path, path which is vendor is striped to /vendor/
-// skip: number of stack ignored
-// returns stack and function name
+// GetStack returns a formatted stack trace, the name of the function that initiated the stack trace,
+// and a pipe-separated string of function names in the call stack.
+// It captures up to 10 closest stack frames, including file paths and line numbers.
+// System paths are ignored, and paths within the 'vendor' directory are truncated to '/vendor/'.
+//
+// Parameters:
+//   skip: The number of stack frames to ignore from the beginning of the call stack (useful for skipping internal helper functions).
+//
+// Returns:
+//   string: A formatted string representing the stack trace, with each frame in the format "file:line" and separated by " | ".
+//   string: The name of the function at the top of the captured stack trace (after skipping).
+//   string: A pipe-separated string of all function names in the call stack (after skipping).
 func GetStack(skip int) (string, string, string) {
 	stack := make([]uintptr, 10)
 	var sb strings.Builder

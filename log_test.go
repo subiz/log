@@ -3,7 +3,6 @@ package log_test
 import (
 	"context"
 	"fmt"
-	"hash/crc32"
 	"strconv"
 	"strings"
 	"testing"
@@ -197,12 +196,4 @@ func TestLoopLog(t *testing.T) {
 		log.Track(ctx, "test", "account_id", "sble4", "i", "["+strconv.Itoa(i)+"]", "tag", "llm")
 		span.End()
 	}
-}
-
-func TestGenErrCode(t *testing.T) {
-	// 3692131565 10
-	// D48E40F6   16
-	// 3E12T7D    32
-	// 1P276Y5    34
-	fmt.Println(strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte("Invoke/service_unavailable,internal,retryable"))), 10)))
 }

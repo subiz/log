@@ -28,8 +28,8 @@ func (e E) String() string {
 }
 
 type ErrorAttribute struct {
-	Key   string `json:"id,omitempty"`
-	Value string `json:"value,omitempty"`
+	// Key   string `json:"key,omitempty"`
+	Value string `json:"value,omitempty"` // json encoded
 	Type  string `json:"type,omitempty"`
 }
 
@@ -703,28 +703,18 @@ func NewError(err error, field M, codes ...E) *AError {
 				if key == "" || key == "__skip_stack" {
 					continue
 				}
-				b, _ := json.Marshal(value)
 				valtype := getValueType(value)
 				if key[0] == '_' {
 					if mye.XHiddenAttrs == nil {
 						mye.XHiddenAttrs = map[string]*ErrorAttribute{}
 					}
 
-					mye.XHiddenAttrs[key[1:]] = &ErrorAttribute{
-						Key:   key[1:],
-						Value: string(b),
-						Type:  valtype,
-					}
+					mye.XHiddenAttrs[key[1:]] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				} else {
 					if mye.Attrs == nil {
 						mye.Attrs = map[string]*ErrorAttribute{}
 					}
-
-					mye.Attrs[key] = &ErrorAttribute{
-						Key:   key,
-						Value: string(b),
-						Type:  valtype,
-					}
+					mye.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				}
 
 				codestr := mye.Code
@@ -741,7 +731,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	outerr := &AError{Id: toBase62(rand.Int64())}
+	outerr := &AError{Id: toBase62(time.Now().Unix()) + toBase62(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -774,29 +764,16 @@ func NewError(err error, field M, codes ...E) *AError {
 		if key == "" {
 			continue
 		}
-		b, _ := json.Marshal(value)
 		valtype := getValueType(value)
 		if key[0] == '_' {
-			outerr.XHiddenAttrs[key[1:]] = &ErrorAttribute{
-				Key:   key[1:],
-				Value: string(b),
-				Type:  valtype,
-			}
+			outerr.XHiddenAttrs[key[1:]] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 		} else {
-			outerr.Attrs[key] = &ErrorAttribute{
-				Key:   key,
-				Value: string(b),
-				Type:  valtype,
-			}
+			outerr.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 		}
 	}
 
 	if err != nil {
-		outerr.XHiddenAttrs["root"] = &ErrorAttribute{
-			Key:   "root",
-			Value: jsonify(err.Error()),
-			Type:  "string",
-		}
+		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
 	}
 
 	stack, funcname, funcstack := GetStack(skipstack)
@@ -829,27 +806,19 @@ func NewError(err error, field M, codes ...E) *AError {
 		prefix = "R"
 	}
 	if funcname != "" {
-		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{
-			Key:   "function_name",
-			Value: jsonify(funcname),
-			Type:  "string",
-		}
+		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Value: funcname, Type: "string"}
 	}
 
 	if field["_function_name"] != nil {
 		if funcname, _ := field["_function_name"].(string); funcname != "" {
-			outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{
-				Key:   "function_name",
-				Value: jsonify(funcname),
-				Type:  "string",
-			}
+			outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Value: funcname, Type: "string"}
 		}
 	}
 
 	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostname+"/"+funcstack+"/"+outerr.Code))), 16))
 	outerr.Number = "SB" + prefix + "-" + errid
-	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Key: "stack", Value: jsonify(stack), Type: "string"}
-	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Key: "server_name", Value: jsonify(hostname), Type: "string"}
+	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Value: stack, Type: "string"}
+	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Value: hostname, Type: "string"}
 	return outerr
 }
 
@@ -915,28 +884,19 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 				if value == nil {
 					continue
 				}
-				b, _ := json.Marshal(value)
 				valtype := getValueType(value)
 				if key[0] == '_' {
 					if mye.XHiddenAttrs == nil {
 						mye.XHiddenAttrs = map[string]*ErrorAttribute{}
 					}
 
-					mye.XHiddenAttrs[key[1:]] = &ErrorAttribute{
-						Key:   key[1:],
-						Value: string(b),
-						Type:  valtype,
-					}
+					mye.XHiddenAttrs[key[1:]] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				} else {
 					if mye.Attrs == nil {
 						mye.Attrs = map[string]*ErrorAttribute{}
 					}
 
-					mye.Attrs[key] = &ErrorAttribute{
-						Key:   key,
-						Value: string(b),
-						Type:  valtype,
-					}
+					mye.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				}
 
 				codestr := mye.Code
@@ -953,7 +913,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 	}
 
-	outerr := &AError{Id: toBase62(rand.Int64())}
+	outerr := &AError{Id: toBase62(time.Now().Unix()) + toBase62(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -1007,25 +967,16 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 
 		valtype := getValueType(value)
-		b, _ := json.Marshal(value)
+
 		if !strings.HasPrefix(key, "_") {
-			outerr.Attrs[key] = &ErrorAttribute{
-				Key:   key,
-				Value: string(b),
-				Type:  valtype,
-			}
+			outerr.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 		} else {
-			outerr.XHiddenAttrs[strings.TrimPrefix(key, "_")] = &ErrorAttribute{
-				Key:   strings.TrimPrefix(key, "_"),
-				Value: string(b),
-				Type:  valtype,
-			}
+			outerr.XHiddenAttrs[strings.TrimPrefix(key, "_")] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 		}
 	}
 
 	if err != nil {
-		r, _ := json.Marshal(err.Error())
-		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Key: "root", Value: string(r), Type: "string"}
+		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
 	}
 
 	stack, funcname, funcstack := GetStack(1 + skipstack)
@@ -1050,8 +1001,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		funcname = _funcname
 	}
 	if funcname != "" {
-		fb, _ := json.Marshal(funcname)
-		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Key: "function_name", Value: string(fb), Type: "string"}
+		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Value: funcname, Type: "string"}
 	}
 
 	// classified: database error, filesystem error, account access deny
@@ -1067,8 +1017,8 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	span := trace.SpanFromContext(ctx)
 	outerr.TraceId = span.SpanContext().TraceID().String()
 	outerr.SpanId = span.SpanContext().SpanID().String()
-	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Key: "server_name", Value: jsonify(hostname), Type: "string"}
-	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Key: "stack", Value: jsonify(stack), Type: "string"}
+	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Value: hostname, Type: "string"}
+	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Value: stack, Type: "string"}
 	return outerr
 }
 
@@ -1134,13 +1084,9 @@ func WrapStack(err error, skip int) error {
 
 	var oldstack string
 	if oldstacki := mye.XHiddenAttrs["stack"]; oldstacki != nil {
-		json.Unmarshal([]byte(oldstacki.Value), &oldstack)
+		oldstack = oldstacki.Value
 	}
-	mye.XHiddenAttrs["stack"] = &ErrorAttribute{
-		Key:   "stack",
-		Value: jsonify(oldstack + "\n--\n" + stack),
-		Type:  "string",
-	}
+	mye.XHiddenAttrs["stack"] = &ErrorAttribute{Value: oldstack + "\n--\n" + stack, Type: "string"}
 	return mye
 }
 
@@ -1282,7 +1228,11 @@ func getValueType(v any) string {
 	return "object"
 }
 
-func jsonify(v any) string {
+func rawify(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	}
 	b, _ := json.Marshal(v)
 	return string(b)
 }
@@ -1296,7 +1246,7 @@ func toBase62(n int64) string {
 
 	// Handle negative numbers
 	if n < 0 {
-		return "-" + toBase62(-n)
+		return toBase62(-n)
 	}
 
 	result := ""

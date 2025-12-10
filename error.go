@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"log/slog"
-	"math/rand"
+	"math/rand/v2"
 	"strconv"
 	"strings"
 	"time"
@@ -741,7 +741,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	outerr := &AError{Id: strings.ToLower(strconv.FormatInt(int64(rand.Int31()), 16))}
+	outerr := &AError{Id: toBase62(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -953,7 +953,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 	}
 
-	outerr := &AError{Id: strings.ToLower(strconv.FormatInt(int64(rand.Int31()), 16))}
+	outerr := &AError{Id: toBase62(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -1285,4 +1285,24 @@ func getValueType(v any) string {
 func jsonify(v any) string {
 	b, _ := json.Marshal(v)
 	return string(b)
+}
+
+const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+func toBase62(n int64) string {
+	if n == 0 {
+		return "0"
+	}
+
+	// Handle negative numbers
+	if n < 0 {
+		return "-" + toBase62(-n)
+	}
+
+	result := ""
+	for n > 0 {
+		result = string(base62Chars[n%62]) + result
+		n /= 62
+	}
+	return result
 }

@@ -1048,7 +1048,7 @@ func (ae *AError) ToJSON() string {
 
 	messageb, _ := json.Marshal(ae.Message)
 	fieldb, _ := json.Marshal(ae.Attrs)
-	out := `{"id": ` + ae.Id + `,"code":` + fmt.Sprintf("%q", ae.Code) + `,"number":` + fmt.Sprintf("%q", ae.Number) + `,"attrs":` + string(fieldb) + `,"message":` + string(messageb) + ``
+	out := `{"id": "` + ae.Id + `","code":` + fmt.Sprintf("%q", ae.Code) + `,"number":` + fmt.Sprintf("%q", ae.Number) + `,"attrs":` + string(fieldb) + `,"message":` + string(messageb) + ``
 	return `{"code":` + fmt.Sprintf("%q", ae.Code) + `,"class":` + strconv.FormatInt(int64(ae.Class), 10) + `,"error":` + out + `}}`
 }
 

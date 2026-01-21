@@ -8,7 +8,6 @@
 package log
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -76,38 +75,9 @@ const (
 type Writer struct {
 	hostname string
 	service  string
-	network  string
-	raddr    string
 
 	mu   sync.Mutex // guards conn
 	conn net.Conn
-}
-
-// connect makes a connection to the syslog server.
-// It must be called with w.mu held.
-func (w *Writer) connect() (err error) {
-	if w.conn != nil {
-		// ignore err from close, it makes sense to continue anyway
-		w.conn.Close()
-		w.conn = nil
-	}
-
-	if w.network == "" {
-		w.conn, err = unixSyslog()
-		if w.hostname == "" {
-			w.hostname = "localhost"
-		}
-	} else {
-		var c net.Conn
-		c, err = net.Dial(w.network, w.raddr)
-		if err == nil {
-			w.conn = c
-			if w.hostname == "" {
-				w.hostname = c.LocalAddr().String()
-			}
-		}
-	}
-	return
 }
 
 // Close closes a connection to the syslog daemon.
@@ -167,21 +137,4 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	// format is as follows: <PRI>TIMESTAMP HOSTNAME TAG[PID]: MSG
 	return fmt.Fprintf(w.conn, "<%d>%s %s[%s]: %s| %s%s",
 		thep, timestamp, accid, w.service, caller, msg, nl)
-}
-
-// unixSyslog opens a connection to the syslog daemon running on the
-// local machine using a Unix domain socket.
-
-func unixSyslog() (conn net.Conn, err error) {
-	logTypes := []string{"unixgram", "unix"}
-	logPaths := []string{"/dev/log", "/var/run/syslog", "/var/run/log"}
-	for _, network := range logTypes {
-		for _, path := range logPaths {
-			conn, err := net.Dial(network, path)
-			if err == nil {
-				return conn, nil
-			}
-		}
-	}
-	return nil, errors.New("unix syslog delivery error")
 }

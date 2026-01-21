@@ -33,7 +33,7 @@ func DDDDDD() error {
 }
 
 func E() error {
-	err := log.EServer(nil, log.M{"number3": "thanh"})
+	err := log.EServer(context.Background(), "", nil, "number3", "thanh")
 	return err
 }
 
@@ -44,32 +44,32 @@ func TestError(t *testing.T) {
 }
 
 func TestLogErr(t *testing.T) {
-	err := log.EInvalidGoogleToken("thanh", "3290323", "Dayladau") // A()
+	err := log.EInvalidGoogleToken(context.Background(), "thanh", "3290323", "Dayladau") // A()
 	log.Err("subiz", err, "param")
 }
 
 func TestWrap(t *testing.T) {
-	var err error = log.EAccountLocked("thanh") // A()
+	var err error = log.EAccountLocked(context.Background(), "thanh") // A()
 	log.WrapStack(err, 0)
 	time.Sleep(20 * time.Second)
 }
 
 func TestToJson(t *testing.T) {
-	err := log.EAccountLocked("thanh") // A()
+	err := log.EAccountLocked(context.Background(), "thanh") // A()
 	str := err.ToJSON()
 	fmt.Println("JSON:", str)
 }
 
 func TestMarshalJson(t *testing.T) {
-	err := log.EAccountLocked("thanh") // A()
+	err := log.EAccountLocked(context.Background(), "thanh") // A()
 	str := log.NewError(err, nil).ToJSON()
 	fmt.Println("JSON--------:", str)
 }
 
 func TestDontModify(t *testing.T) {
-	err := log.EAccountLocked("thanh") // A()
+	err := log.EAccountLocked(context.Background(), "thanh") // A()
 
-	log.EServer(err, log.M{"secret": "2340asdffEIFJ42"})
+	log.EServer(context.Background(), "acsble", err, "secret", "2340asdffEIFJ42")
 	str := log.NewError(err, nil).ToJSON()
 	if strings.Contains(str, "2340asdffEIFJ42") {
 		t.Error("should not contain")

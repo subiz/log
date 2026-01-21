@@ -14,6 +14,7 @@ import (
 
 	otelcodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc/metadata"
 )
 
 // special field
@@ -26,6 +27,9 @@ type E string
 func (e E) String() string {
 	return string(e)
 }
+
+const CallerHostnameKey = "caller-hostname"
+const CallerStackKey = "caller-stack"
 
 type ErrorAttribute struct {
 	// Key   string `json:"key,omitempty"`
@@ -124,44 +128,44 @@ const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
 const E_zalo_zns_template_manage_quota_exceeded = "zalo_zns_template_manage_quota_exceeded"
 const E_timeout = "timeout"
 
-func EInvalidUrl(accid, url string, fields ...M) *AError {
+func EInvalidUrl(ctx context.Context, accid, url string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["url"] = url
-	return Error3(accid, nil, field, E_invalid_url, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_url, E_invalid_input)
 }
 
-func EUnverifiedDomain(accid, domain string, fields ...M) *AError {
+func EUnverifiedDomain(ctx context.Context, accid, domain string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["domain"] = domain
-	return Error3(accid, nil, field, E_unverified_domain, E_invalid_domain, E_invalid_url, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_unverified_domain, E_invalid_domain, E_invalid_url, E_invalid_input)
 }
 
-func EInvalidDomain(accid, domain string, fields ...M) *AError {
+func EInvalidDomain(ctx context.Context, accid, domain string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["domain"] = domain
-	return Error3(accid, nil, field, E_invalid_domain, E_invalid_url, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_domain, E_invalid_url, E_invalid_input)
 }
 
-func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
+func EUnsupportedFileFormat(ctx context.Context, accid, fileformat string, supporteds []string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["file_format"] = fileformat
 	field["supported"] = strings.Join(supporteds, ", ")
-	return Error3(accid, nil, field, E_unsupported_file_format, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_unsupported_file_format, E_invalid_input)
 }
 
-func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
+func EApiHttpUnsupported(ctx context.Context, ip, url, ref string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -169,7 +173,7 @@ func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
 	field["ip"] = ip
 	field["_url"] = url
 	field["_ref"] = ref
-	return Error3("", nil, field, E_api_http_unsupported, E_invalid_input)
+	return Error3(ctx, "", nil, field, E_api_http_unsupported, E_invalid_input)
 }
 
 func EMetaCustomAudienceTermConsentRequired(adaccid string, fields ...M) *AError {
@@ -178,20 +182,20 @@ func EMetaCustomAudienceTermConsentRequired(adaccid string, fields ...M) *AError
 		field = fields[0]
 	}
 	field["ad_account_id"] = adaccid
-	return Error3("", nil, field, E_meta_custom_audience_term_consent_required, E_invalid_input)
+	return Error3(context.Background(), "", nil, field, E_meta_custom_audience_term_consent_required, E_invalid_input)
 }
 
-func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
+func EInvalidKbHandle(ctx context.Context, accid, kb, handle string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["kb"] = kb
 	field["handle"] = handle
-	return Error3(accid, nil, field, E_invalid_kb_handle, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_kb_handle, E_invalid_input)
 }
 
-func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
+func EDupKbHandle(ctx context.Context, accid, kb, handle string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -199,17 +203,17 @@ func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
 
 	field["kb"] = kb
 	field["handle"] = handle
-	return Error3(accid, nil, field, E_kb_handle_already_used, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_kb_handle_already_used, E_invalid_input)
 }
 
-func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
+func EClosePublicChannel(ctx context.Context, accid, convoid, channel string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["conversation_id"] = convoid
 	field["channel"] = channel
-	return Error3(accid, nil, field, E_close_public_channel, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_close_public_channel, E_invalid_input)
 }
 
 func EPasswordTooWeak(fields ...M) *AError {
@@ -217,7 +221,7 @@ func EPasswordTooWeak(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_password_too_weak, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_password_too_weak, E_invalid_input)
 }
 
 func EGoogle(err error, fields ...M) *AError {
@@ -225,7 +229,7 @@ func EGoogle(err error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_google_error, E_internal, E_retryable)
+	return Error3(context.TODO(), "", nil, field, E_google_error, E_internal, E_retryable)
 }
 
 func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
@@ -235,53 +239,53 @@ func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
 	}
 	field["promotion_code"] = code
 	field["errors"] = errors
-	return Error3("", nil, field, E_invalid_promotion_code, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_invalid_promotion_code, E_invalid_input)
 }
 
-func EInvalidCurrency(accid, cur string, fields ...M) *AError {
+func EInvalidCurrency(ctx context.Context, accid, cur string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["currency"] = cur
-	return Error3(accid, nil, field, E_invalid_currency, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_currency, E_invalid_input)
 }
 
-func EStillHaveOpenInvoice(accid string, fields ...M) *AError {
+func EStillHaveOpenInvoice(ctx context.Context, accid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3(accid, nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
 }
 
-func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
-	field["conversation_id"] = convoid
-	field["issuer_id"] = issuerid
-	return Error3(accid, nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
-}
-
-func ENotAMember(accid, convoid, issuerid string, fields ...M) *AError {
+func ELeaverIsTheLastOneInConvo(ctx context.Context, accid, convoid, issuerid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["conversation_id"] = convoid
 	field["issuer_id"] = issuerid
-	return Error3(accid, nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
 }
 
-func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
+func ENotAMember(ctx context.Context, accid, convoid, issuerid string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["conversation_id"] = convoid
+	field["issuer_id"] = issuerid
+	return Error3(ctx, accid, nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
+}
+
+func EInvalidWebhookUrl(ctx context.Context, accid, webhookurl string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["webhook_url"] = webhookurl
-	return Error3(accid, nil, field, E_invalid_webhook_url, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_webhook_url, E_invalid_input)
 }
 
 func EInvalidOTP(username, otp string, fields ...M) *AError {
@@ -291,25 +295,25 @@ func EInvalidOTP(username, otp string, fields ...M) *AError {
 	}
 	field["username"] = username
 	field["otp"] = otp
-	return Error3("", nil, field, E_invalid_otp, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_invalid_otp, E_invalid_input)
 }
 
-func EInactiveNumber(accid, number string, fields ...M) *AError {
+func EInactiveNumber(ctx context.Context, accid, number string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["number"] = number
-	return Error3(accid, nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
 }
 
-func EBlockedNumber(accid, number string, fields ...M) *AError {
+func EBlockedNumber(ctx context.Context, accid, number string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["number"] = number
-	return Error3(accid, nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
 }
 
 func EInviteLinkExpired(link string, fields ...M) *AError {
@@ -318,34 +322,34 @@ func EInviteLinkExpired(link string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["link"] = link
-	return Error3("", nil, field, E_invite_link_expired, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_invite_link_expired, E_invalid_input)
 }
 
-func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
+func EInvalidIntegration(ctx context.Context, accid, inteid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["integration_id"] = inteid
-	return Error3(accid, nil, field, E_invalid_integration, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_integration, E_invalid_input)
 }
 
-func EMalformedRequest(accid, code string, fields ...M) *AError {
+func EMalformedRequest(ctx context.Context, accid, code string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["code"] = code
-	return Error3(accid, nil, field, E_malformed_request, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_malformed_request, E_invalid_input)
 }
 
-func EConversationEnded(accid, convoid string, fields ...M) *AError {
+func EConversationEnded(ctx context.Context, accid, convoid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["conversation_id"] = convoid
-	return Error3(accid, nil, field, E_conversation_ended, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_conversation_ended, E_invalid_input)
 }
 
 func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AError {
@@ -355,7 +359,7 @@ func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AEr
 	}
 	field["current_length"] = currentLength
 	field["required_length"] = requiredLength
-	return Error3("", nil, field, E_invalid_password_length, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_invalid_password_length, E_invalid_input)
 }
 
 func EEmailTaken(email string, fields ...M) *AError {
@@ -364,47 +368,47 @@ func EEmailTaken(email string, fields ...M) *AError {
 		field = fields[0]
 	}
 	field["email"] = email
-	return Error3("", nil, field, E_email_taken, E_invalid_input)
+	return Error3(context.TODO(), "", nil, field, E_email_taken, E_invalid_input)
 }
 
-func EInvalidPollConnection(accid, id string, fields ...M) *AError {
+func EInvalidPollConnection(ctx context.Context, accid, id string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["connection_id"] = id
-	return Error3(accid, nil, field, E_invalid_connection, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_connection, E_invalid_input)
 }
 
-func EDeadPollConnection(accid, id string, fields ...M) *AError {
+func EDeadPollConnection(ctx context.Context, accid, id string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["connection_id"] = id
-	return Error3(accid, nil, field, E_invalid_connection, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_connection, E_invalid_input)
 }
 
-func EInvalidField(accid, name, value string, fields ...M) *AError {
+func EInvalidField(ctx context.Context, accid, name, value string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["name"] = name
 	field["value"] = value
-	return Error3(accid, nil, field, E_invalid_field, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_invalid_field, E_invalid_input)
 }
 
-func EDupplicateContactUpdate(accid, emailorphone string, fields ...M) *AError {
+func EDupplicateContactUpdate(ctx context.Context, accid, emailorphone string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["prop"] = emailorphone
-	return Error3(accid, nil, field, E_dupplicate_contact_update, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_dupplicate_contact_update, E_invalid_input)
 }
 
-func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) *AError {
+func ENotEnoughCredit(ctx context.Context, accid, creditid, creditname, service string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -412,37 +416,37 @@ func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) 
 	field["credit_id"] = creditid
 	field["credit_name"] = creditname
 	field["service"] = service
-	return Error3(accid, nil, field, E_insufficient_credit)
+	return Error3(ctx, accid, nil, field, E_insufficient_credit)
 }
 
-func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
+func EInvalidZaloToken(ctx context.Context, accid, oaid, oaName string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["oa_id"] = oaid
 	field["oa_name"] = oaName
-	return Error3(accid, nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
+	return Error3(ctx, accid, nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
 }
 
-func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError {
+func EInvalidFacebookToken(ctx context.Context, accid, pageid, pageName string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["page_id"] = pageid
 	field["page_name"] = pageName
-	return Error3(accid, nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
+	return Error3(ctx, accid, nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
 }
 
-func EInvalidGoogleToken(accid, locationId, locationName string, fields ...M) *AError {
+func EInvalidGoogleToken(ctx context.Context, accid, locationId, locationName string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["location_id"] = locationId
 	field["location_name"] = locationName
-	return Error3(accid, nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
+	return Error3(ctx, accid, nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
 }
 
 func EServiceUnavailable(err error, fields ...M) *AError {
@@ -450,45 +454,45 @@ func EServiceUnavailable(err error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", err, field, E_service_unavailable, E_internal, E_retryable)
+	return Error3(context.TODO(), "", err, field, E_service_unavailable, E_internal, E_retryable)
 }
 
-func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
+func EPayloadTooLarge(ctx context.Context, curSize int64, maxSize int64, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["current_size"] = curSize
 	field["maximum_size"] = maxSize
-	return Error3("", nil, field, E_payload_too_large, E_invalid_input)
+	return Error3(ctx, "", nil, field, E_payload_too_large, E_invalid_input)
 }
 
-func ELimitExceeded(capacity int64, fields ...M) *AError {
+func ELimitExceeded(ctx context.Context, accid string, capacity int64, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["capacity"] = capacity
-	return Error3("", nil, field, E_limit_exceeded, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_limit_exceeded, E_invalid_input)
 }
 
-func ERateLimit(fields ...M) *AError {
+func ERateLimit(ctx context.Context, accid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
 }
 
-func EMissingId(typ string, fields ...M) *AError {
+func EMissingId(ctx context.Context, typ string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_missing_id, E_invalid_input)
+	return Error3(ctx, "", nil, field, E_missing_id, E_invalid_input)
 }
 
-func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string, fields ...M) *AError {
+func EInvalidInputFormat(ctx context.Context, base error, fieldname, currentvalue string, msg string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
@@ -496,87 +500,92 @@ func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string,
 	field["invalid_field"] = fieldname
 	field["invalid_value"] = currentvalue
 	field["msg"] = msg
-	return Error3("", base, field, E_invalid_input_format, E_invalid_input)
+	return Error3(ctx, "", base, field, E_invalid_input_format, E_invalid_input)
 }
 
-func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
+func EInvalidInput(ctx context.Context, accid string, base error, required_fields []string, internal_message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["required_fields"] = required_fields
-	return Error3("", base, field, E_invalid_input)
+	return Error3(ctx, accid, base, field, E_invalid_input)
 }
 
-func EAgentLocked(accid, agentid string, fields ...M) *AError {
+func EAgentLocked(ctx context.Context, accid, agentid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["agent_id"] = agentid
-	return Error3(accid, nil, field, E_locked_agent)
+	return Error3(ctx, accid, nil, field, E_locked_agent)
 }
 
-func EAccountLocked(accid string, fields ...M) *AError {
+func EAccountLocked(ctx context.Context, accid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3(accid, nil, field, E_locked_account)
+	return Error3(ctx, accid, nil, field, E_locked_account)
 }
 
-func ERetry(base error, fields ...M) *AError {
+func ETimeout(ctx context.Context, accid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", base, field, E_internal, E_retryable)
+	return Error3(ctx, accid, nil, field, E_timeout, E_internal, E_retryable)
 }
 
-func ETimeout(fields ...M) *AError {
+func EServer(ctx context.Context, accid string, base error, args ...any) *AError {
 	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
+	if len(args) == 1 {
+		field["arg"] = args[0]
+	} else {
+		if len(args)%2 == 0 {
+			for i := 0; i < len(args); i += 2 {
+				str, _ := args[i].(string)
+				field[str] = args[i+1]
+			}
+		} else {
+			for i := 0; i < len(args)-1; i += 2 {
+				str, _ := args[i].(string)
+				field[str] = args[i+1]
+			}
+			field["last_arg"] = args[len(args)-1]
+		}
 	}
-	return Error3("", nil, field, E_timeout, E_internal, E_retryable)
+	return Error3(ctx, accid, base, field, E_internal, E_retryable)
 }
 
-func EServer(base error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
-	return Error3("", base, field, E_internal)
-}
-
-func EProvider(base error, external_service, action string, fields ...M) *AError {
+func EProvider(ctx context.Context, accid string, base error, external_service, action string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["external_service"] = external_service
 	field["action"] = action
-	return Error3("", base, field, E_provider_failed, E_internal)
+	return Error3(ctx, accid, base, field, E_provider_failed, E_internal)
 }
 
-func EParseInput(base error, payload []byte, fields ...M) *AError {
+func EParseInput(ctx context.Context, base error, payload []byte, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
-	return Error3("", base, field, E_invalid_input)
+	return Error3(ctx, "", base, field, E_invalid_input)
 }
 
-func EData(base error, payload []byte, fields ...M) *AError {
+func EData(ctx context.Context, base error, payload []byte, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
-	return Error3("", base, field, E_internal, E_transform_data, E_data_corrupted)
+	return Error3(ctx, "", base, field, E_internal, E_transform_data, E_data_corrupted)
 }
 
 func EInternalConnect(base error, fields ...M) *AError {
@@ -584,34 +593,25 @@ func EInternalConnect(base error, fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", base, field, E_internal_connection, E_internal)
+	return Error3(context.TODO(), "", base, field, E_internal_connection, E_internal)
 }
 
-func EFS(base error, path string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
-	field["path"] = path
-	return Error3("", base, field, E_file_system_error, E_internal)
-}
-
-func ELockedUser(userid string, fields ...M) *AError {
+func ELockedUser(ctx context.Context, accid, userid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error3("", nil, field, E_locked_user, E_access_deny)
+	return Error3(ctx, accid, nil, field, E_locked_user, E_access_deny)
 }
 
-func EDeny(userid string, requiredPerm string, fields ...M) *AError {
+func EDeny(ctx context.Context, accid, userid string, requiredPerm string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error3("", nil, field, E_access_deny)
+	return Error3(ctx, accid, nil, field, E_access_deny)
 }
 
 func EExpiredAccessToken(fields ...M) *AError {
@@ -619,7 +619,7 @@ func EExpiredAccessToken(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_access_deny, E_access_token_expired)
+	return Error3(context.TODO(), "", nil, field, E_access_deny, E_access_token_expired)
 }
 
 func EWrongPassword(fields ...M) *AError {
@@ -627,39 +627,39 @@ func EWrongPassword(fields ...M) *AError {
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
-	return Error3("", nil, field, E_wrong_password)
+	return Error3(context.TODO(), "", nil, field, E_wrong_password)
 }
 
-func EUnsub(accid, userid string, fields ...M) *AError {
+func EUnsub(ctx context.Context, accid, userid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error3(accid, nil, field, E_user_is_unsubscribed, E_invalid_input)
+	return Error3(ctx, accid, nil, field, E_user_is_unsubscribed, E_invalid_input)
 }
 
-func EBanned(accid, userid string, internal_message string, fields ...M) *AError {
+func EBanned(ctx context.Context, accid, userid string, internal_message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["user_id"] = userid
-	return Error3(accid, nil, field, E_user_is_banned)
+	return Error3(ctx, accid, nil, field, E_user_is_banned)
 }
 
 func ErrContext(ctx context.Context, err error) error {
 	return err
 }
 
-func EMissing(id, typ string, fields ...M) *AError {
+func EMissing(ctx context.Context, accid string, id, typ string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]
 	}
 	field["type"] = typ
 	field["id"] = id
-	return Error3("", nil, field, E_missing_resource)
+	return Error3(ctx, accid, nil, field, E_missing_resource)
 }
 
 func IsErr(err error, code string) bool {
@@ -991,10 +991,8 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	}
 
 	// override message
-	if overridemsg != nil {
-		for code, msg := range overridemsg {
-			outerr.Message[code] = msg
-		}
+	for code, msg := range overridemsg {
+		outerr.Message[code] = msg
 	}
 
 	if _funcname != "" {
@@ -1022,9 +1020,33 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	return outerr
 }
 
+func GetCallerStack(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		md, ok = metadata.FromOutgoingContext(ctx)
+		if !ok {
+			return ""
+		}
+	}
+
+	return strings.Join(md[CallerHostnameKey], "")
+}
+
+func GetCallerHostname(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		md, ok = metadata.FromOutgoingContext(ctx)
+		if !ok {
+			return ""
+		}
+	}
+
+	return strings.Join(md[CallerHostnameKey], "")
+}
+
 // Error creates an error and report it to server
 // If you dont want to report it, use NewError instead
-func Error3(accid string, err error, field M, codes ...E) *AError {
+func Error3(ctx context.Context, accid string, err error, field M, codes ...E) *AError {
 	if field != nil && accid == "" {
 		if acci, has := field["account_id"]; has {
 			accid, _ = acci.(string)
@@ -1033,6 +1055,16 @@ func Error3(accid string, err error, field M, codes ...E) *AError {
 
 	if field != nil && accid != "" {
 		field["account_id"] = accid
+	}
+
+	callerhostname := GetCallerHostname(ctx)
+	if callerhostname != "" {
+		field["_caller_hostname"] = callerhostname
+	}
+
+	callerstack := GetCallerStack(ctx)
+	if callerstack != "" {
+		field["_caller_stack"] = callerstack
 	}
 
 	outerr := NewError(err, field, codes...)

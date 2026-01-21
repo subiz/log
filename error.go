@@ -700,7 +700,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		// our error
 		if mye != nil {
 			for key, value := range field {
-				if key == "" || key == "__skip_stack" {
+				if key == "" {
 					continue
 				}
 				valtype := getValueType(value)
@@ -754,12 +754,6 @@ func NewError(err error, field M, codes ...E) *AError {
 	outerr.Attrs = map[string]*ErrorAttribute{}
 	outerr.XHiddenAttrs = map[string]*ErrorAttribute{}
 
-	skipstack := 0
-	if field["__skip_stack"] != nil {
-		skipstack = interfaceToInt(field["__skip_stack"])
-		delete(field, "__skip_stack")
-	}
-
 	for key, value := range field {
 		if key == "" {
 			continue
@@ -776,7 +770,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
 	}
 
-	stack, funcname, funcstack := GetStack(skipstack)
+	stack, funcname, funcstack := GetStack(0)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -877,7 +871,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 					continue
 				}
 				key, _ := keyi.(string)
-				if key == "" || key == "__skip_stack" {
+				if key == "" {
 					continue
 				}
 				value := args[i+1]
@@ -936,7 +930,6 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	outerr.Attrs = map[string]*ErrorAttribute{}
 	outerr.XHiddenAttrs = map[string]*ErrorAttribute{}
 
-	skipstack := 0
 	var overridemsg map[string]string
 	var _funcname string
 	for i := 0; i < len(args)-1; i += 2 {
@@ -951,11 +944,6 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		value := args[i+1]
 		if value == nil {
 			continue
-		}
-
-		if key == "__skip_stack" {
-			skipstack = interfaceToInt(value)
-			continue // do not store
 		}
 
 		if key == "_message" {
@@ -979,7 +967,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
 	}
 
-	stack, funcname, funcstack := GetStack(1 + skipstack)
+	stack, funcname, funcstack := GetStack(1)
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
@@ -1050,44 +1038,6 @@ func (ae *AError) ToJSON() string {
 	fieldb, _ := json.Marshal(ae.Attrs)
 	out := `{"id": "` + ae.Id + `","code":` + fmt.Sprintf("%q", ae.Code) + `,"number":` + fmt.Sprintf("%q", ae.Number) + `,"attrs":` + string(fieldb) + `,"message":` + string(messageb) + ``
 	return `{"code":` + fmt.Sprintf("%q", ae.Code) + `,"class":` + strconv.FormatInt(int64(ae.Class), 10) + `,"error":` + out + `}}`
-}
-
-func WrapStack(err error, skip int) error {
-	if err == nil {
-		return nil
-	}
-
-	mye, ok := err.(*AError)
-	if !ok {
-		// casting to err failed
-		// dont give up yet, fallback to json
-		errstr := err.Error()
-		if strings.HasPrefix(errstr, "#ERR ") {
-			roote := &AError{}
-			if er := json.Unmarshal([]byte(errstr[len("#ERR "):]), roote); er == nil {
-				if roote.Code != "" && roote.Class != 0 { // valid err
-					mye = roote
-				}
-			}
-		}
-	}
-
-	// not our error
-	if mye == nil {
-		return err
-	}
-
-	stack, _, _ := GetStack(skip)
-	if mye.XHiddenAttrs == nil {
-		mye.XHiddenAttrs = map[string]*ErrorAttribute{}
-	}
-
-	var oldstack string
-	if oldstacki := mye.XHiddenAttrs["stack"]; oldstacki != nil {
-		oldstack = oldstacki.Value
-	}
-	mye.XHiddenAttrs["stack"] = &ErrorAttribute{Value: oldstack + "\n--\n" + stack, Type: "string"}
-	return mye
 }
 
 func OverrideErrorTable(errtable map[E]H) {

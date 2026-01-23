@@ -57,6 +57,7 @@ const E_meta_custom_audience_term_consent_required = "meta_custom_audience_term_
 const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
+const E_unassigned_number = "unassigned_number"
 const E_invalid_field E = "invalid_field"
 const E_email_taken E = "email_taken"
 const E_invalid_domain E = "invalid_domain"
@@ -337,6 +338,15 @@ func EMalformedRequest(accid, code string, fields ...M) *AError {
 	}
 	field["code"] = code
 	return Error3(accid, nil, field, E_malformed_request, E_invalid_input)
+}
+
+func ENumberNotBounded(ctx context.Context, accid, number string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["number"] = number
+	return Error3(ctx, accid, nil, field, E_unassigned_number, E_invalid_input)
 }
 
 func EConversationEnded(accid, convoid string, fields ...M) *AError {

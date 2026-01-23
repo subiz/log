@@ -11,6 +11,10 @@
 		"vi_VN": "Tên miền {domain} chưa được xác thực, vui lòng xác thực hoặc chọn một tên miền khác",
 		"en_US": "The domain {domain} has not been verified, please verify it or choose another domain."
 	},
+	"unassigned_number": {
+		"vi_VN": "Đầu số {{number}} chưa được đấu nối, vui lòng liên hệ Subiz để được hỗ trợ",
+		"en_US": "The number {{number}} has not been connected yet. Please contact Subiz for support."
+	},
 	"unsupported_file_format": {
 		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}.",
 		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}."

@@ -346,7 +346,7 @@ func ENumberNotBounded(ctx context.Context, accid, number string, fields ...M) *
 		field = fields[0]
 	}
 	field["number"] = number
-	return Error3(ctx, accid, nil, field, E_unassigned_number, E_invalid_input)
+	return Error3(accid, nil, field, E_unassigned_number, E_invalid_input)
 }
 
 func EConversationEnded(accid, convoid string, fields ...M) *AError {
@@ -989,10 +989,8 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	}
 
 	// override message
-	if overridemsg != nil {
-		for code, msg := range overridemsg {
-			outerr.Message[code] = msg
-		}
+	for code, msg := range overridemsg {
+		outerr.Message[code] = msg
 	}
 
 	if _funcname != "" {
@@ -1144,7 +1142,6 @@ func Substring(s string, start int, end int) string {
 }
 
 // var ISOTABLE = crc64.MakeTable(crc64.ISO)
-
 func interfaceToInt(in interface{}) int {
 	var number int
 	switch v := in.(type) {

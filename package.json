@@ -1,6 +1,6 @@
 {
   "name": "@subiz/log",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Dead simple logging package for streaming log to syslog",
   "main": "main.js",
   "scripts": {

@@ -62,6 +62,7 @@ const E_invalid_field E = "invalid_field"
 const E_email_taken E = "email_taken"
 const E_invalid_domain E = "invalid_domain"
 const E_missing_resource E = "missing_resource"
+const E_inactive_resource E = "inactive_resource"
 const E_dupplicate_contact_update E = "dupplicate_contact_update"
 const E_access_deny E = "access_deny"
 const E_missing_id E = "missing_id"
@@ -670,6 +671,16 @@ func EMissing(id, typ string, fields ...M) *AError {
 	field["type"] = typ
 	field["id"] = id
 	return Error3("", nil, field, E_missing_resource)
+}
+
+func EInactive(id, typ string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["type"] = typ
+	field["id"] = id
+	return Error3("", nil, field, E_inactive_resource)
 }
 
 func IsErr(err error, code string) bool {

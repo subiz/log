@@ -212,6 +212,10 @@
 		"vi_VN": "Lỗi kết nối nội bộ, vui lòng thử lại sau",
 		"en_US": "Internal connection error, please retry later"
 	},
+	"inactive_resource": {
+		"vi_VN": "{type} đang bị khóa. Vui lòng bật lại {type} để tiếp tục",
+		"en_US": "{type} is locked. Please re-enable {type} to continue"
+	},
 	"missing_resource": {
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found"

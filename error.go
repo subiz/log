@@ -519,6 +519,16 @@ func EInvalidInput(base error, required_fields []string, internal_message string
 	return Error3("", base, field, E_invalid_input)
 }
 
+func EInput(f string, message string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["field"] = f
+	field["message"] = message
+	return Error3("", base, field, E_invalid_input)
+}
+
 func EAgentLocked(accid, agentid string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
@@ -664,6 +674,16 @@ func ErrContext(ctx context.Context, err error) error {
 }
 
 func EMissing(id, typ string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["type"] = typ
+	field["id"] = id
+	return Error3("", nil, field, E_missing_resource)
+}
+
+func ENotFound(id, typ string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]

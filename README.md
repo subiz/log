@@ -196,3 +196,7 @@ Traces:
   ]
 }
 ```
+
+### Development
+
+When you make change to `error.json`, make sure to run `node build.js`

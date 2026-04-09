@@ -17,6 +17,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Tên miền {domain} chưa được xác thực, vui lòng xác thực hoặc chọn một tên miền khác",
 		"en_US": "The domain {domain} has not been verified, please verify it or choose another domain.",
 	},
+	"unassigned_number": H{
+		"vi_VN": "Đầu số {{number}} chưa được đấu nối, vui lòng liên hệ Subiz để được hỗ trợ",
+		"en_US": "The number {{number}} has not been connected yet. Please contact Subiz for support.",
+	},
 	"unsupported_file_format": H{
 		"vi_VN": "Định dạng file {file_format} không được hỗ trợ. Danh sách những định dạng file được hỗ trợ: {supported}.",
 		"en_US": "The file format {file_format} is not supported. List of supported file formats: {supported}.",
@@ -213,6 +217,10 @@ var ErrorTable = map[E]H{
 		"vi_VN": "Lỗi kết nối nội bộ, vui lòng thử lại sau",
 		"en_US": "Internal connection error, please retry later",
 	},
+	"inactive_resource": H{
+		"vi_VN": "{type} đang bị khóa. Vui lòng bật lại {type} để tiếp tục",
+		"en_US": "{type} is locked. Please re-enable {type} to continue",
+	},
 	"missing_resource": H{
 		"vi_VN": "Không tìm thấy {type}",
 		"en_US": "{type} not found",
@@ -238,7 +246,7 @@ var ErrorTable = map[E]H{
 		"en_US": "You are not authorized. To perform this action you need following permission: {missing}",
 	},
 	"invalid_input": H{
-		"vi_VN": "Dữ liệu đầu vào không hợp lệ",
+		"vi_VN": "Đầu vào không hợp lệ",
 		"en_US": "Invalid input data",
 	},
 	"invalid_input_format": H{

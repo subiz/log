@@ -240,10 +240,12 @@
 		"vi_VN": "Bạn không có đủ quyền. Để thực hiện chức năng này bạn cần thêm quyền {mising}",
 		"en_US": "You are not authorized. To perform this action you need following permission: {missing}"
 	},
+
 	"invalid_input": {
-		"vi_VN": "Dữ liệu đầu vào không hợp lệ",
+		"vi_VN": "Đầu vào không hợp lệ",
 		"en_US": "Invalid input data"
 	},
+
 	"invalid_input_format": {
 		"vi_VN": "Trường dữ liệu '{invalid_field}' không hợp lệ. Vui lòng thử với giá trị khác ({msg}).",
 		"en_US": "The data field '{invalid_field}' is not valid. Please try with another value ({msg})."

@@ -519,7 +519,7 @@ func EInvalidInput(base error, required_fields []string, internal_message string
 	return Error3("", base, field, E_invalid_input)
 }
 
-func EInput(f string, message string, fields ...M) *AError {
+func EInput(base error, f string, message string, fields ...M) *AError {
 	var field = M{}
 	if len(fields) > 0 && fields[0] != nil {
 		field = fields[0]

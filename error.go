@@ -54,7 +54,6 @@ const E_unverified_domain E = "unverified_domain"
 const E_unsupported_file_format E = "unsupported_file_format"
 const E_api_http_unsupported E = "api_http_unsupported"
 const E_meta_custom_audience_term_consent_required = "meta_custom_audience_term_consent_required"
-const E_expired_access_token E = "access_token_expired"
 const E_invalid_otp E = "invalid_otp"
 const E_invalid_input_format E = "invalid_input_format"
 const E_unassigned_number = "unassigned_number"
@@ -772,7 +771,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		}
 	}
 
-	outerr := &AError{Id: toBase62(time.Now().Unix()) + toBase62(rand.Int64())}
+	outerr := &AError{Id: toBase58(time.Now().Unix()/3600) + toBase58(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -948,7 +947,7 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 		}
 	}
 
-	outerr := &AError{Id: toBase62(time.Now().Unix()) + toBase62(rand.Int64())}
+	outerr := &AError{Id: toBase58(time.Now().Unix()/3600) + toBase58(rand.Int64())}
 	// backward compatible, remove in future
 	outerr.Class = 400
 	codestr := ""
@@ -1225,22 +1224,23 @@ func rawify(v any) string {
 	return string(b)
 }
 
-const base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+// remove 0, I, O, l because its too hard to identify
+const base58Chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-func toBase62(n int64) string {
+func toBase58(n int64) string {
 	if n == 0 {
-		return "0"
+		return "1"
 	}
 
 	// Handle negative numbers
 	if n < 0 {
-		return toBase62(-n)
+		return toBase58(-n)
 	}
 
 	result := ""
 	for n > 0 {
-		result = string(base62Chars[n%62]) + result
-		n /= 62
+		result = string(base58Chars[n%58]) + result
+		n /= 58
 	}
 	return result
 }

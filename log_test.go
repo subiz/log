@@ -3,13 +3,10 @@ package log_test
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	log "github.com/subiz/log"
-	"go.opentelemetry.io/otel/trace"
 )
 
 func A() error {
@@ -48,10 +45,29 @@ func TestLogErr(t *testing.T) {
 	log.Err("subiz", err, "param")
 }
 
-func TestWrap(t *testing.T) {
-	var err error = log.EAccountLocked("thanh") // A()
-	log.WrapStack(err, 0)
-	time.Sleep(20 * time.Second)
+// TestWrapNoDuplicateCode guards against a regression where wrapping an
+// existing *AError appended the extra codes once per field, producing
+// "internal,retryable,retryable,retryable" instead of "internal,retryable".
+func TestWrapNoDuplicateCode(t *testing.T) {
+	base := log.EServer(nil) // code: internal
+	wrapped := log.NewError(base, log.M{"a": "1", "b": "2", "c": "3"}, "retryable")
+
+	seen := map[string]bool{}
+	for _, c := range strings.Split(wrapped.Code, ",") {
+		if seen[c] {
+			t.Errorf("duplicate code %q in %q", c, wrapped.Code)
+		}
+		seen[c] = true
+	}
+}
+
+// TestMessageOverrideUnknownCode guards against a nil-map panic: overriding
+// _message when the code has no ErrorTable entry used to write to a nil map.
+func TestMessageOverrideUnknownCode(t *testing.T) {
+	err := log.NewError(nil, log.M{"_message": map[string]string{"en_US": "custom"}}, "some_unknown_code")
+	if err.Message["en_US"] != "custom" {
+		t.Errorf("expected custom message, got %v", err.Message)
+	}
 }
 
 func TestToJson(t *testing.T) {
@@ -172,28 +188,5 @@ func TestSpanName(t *testing.T) {
 	_, spanName, _ := log.GetStack(-2)
 	if spanName != "github.com/subiz/log_test.TestSpanName" {
 		t.Errorf("SHOULDEQ, GOT %s", spanName)
-	}
-}
-
-func TestLoopLog(t *testing.T) {
-	defer log.Shutdown()
-	i := 0
-	for {
-		if i%100 == 99 {
-			time.Sleep(10 * time.Second)
-		}
-		i++
-		time.Sleep(10 * time.Millisecond)
-		ctx, span := log.Start(context.Background())
-		spanCtx := trace.SpanContextFromContext(ctx)
-
-		fmt.Println("SSSS", spanCtx.TraceID().String())
-		// if spanCtx.HasTraceID() {
-		// traceID := spanCtx.TraceID()
-		// return traceID.String()
-		//}
-
-		log.Track(ctx, "test", "account_id", "sble4", "i", "["+strconv.Itoa(i)+"]", "tag", "llm")
-		span.End()
 	}
 }

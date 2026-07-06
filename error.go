@@ -756,17 +756,19 @@ func NewError(err error, field M, codes ...E) *AError {
 					}
 					mye.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				}
-
-				codestr := mye.Code
-				for _, code := range codes {
-					if codestr == "" {
-						codestr = string(code)
-						continue
-					}
-					codestr += "," + string(code)
-				}
-				mye.Code = codestr
 			}
+
+			// append codes once, after all fields are merged. Doing this
+			// inside the field loop duplicates every code per field.
+			codestr := mye.Code
+			for _, code := range codes {
+				if codestr == "" {
+					codestr = string(code)
+					continue
+				}
+				codestr += "," + string(code)
+			}
+			mye.Code = codestr
 			return mye
 		}
 	}
@@ -811,13 +813,12 @@ func NewError(err error, field M, codes ...E) *AError {
 	}
 
 	stack, funcname, funcstack := GetStack(0)
+	outerr.Message = map[string]string{}
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
-			outerr.Message = map[string]string{
-				"En_US": formatString(msg["en_US"], field),
-				"Vi_VN": formatString(msg["vi_VN"], field),
-			}
+			outerr.Message["en_US"] = formatString(msg["en_US"], field)
+			outerr.Message["vi_VN"] = formatString(msg["vi_VN"], field)
 		}
 	}
 
@@ -932,17 +933,19 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 
 					mye.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
 				}
-
-				codestr := mye.Code
-				for _, code := range codes {
-					if codestr == "" {
-						codestr = string(code)
-						continue
-					}
-					codestr += "," + string(code)
-				}
-				mye.Code = codestr
 			}
+
+			// append codes once, after all args are merged. Doing this
+			// inside the args loop duplicates every code per arg pair.
+			codestr := mye.Code
+			for _, code := range codes {
+				if codestr == "" {
+					codestr = string(code)
+					continue
+				}
+				codestr += "," + string(code)
+			}
+			mye.Code = codestr
 			return mye
 		}
 	}
@@ -1008,13 +1011,12 @@ func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
 	}
 
 	stack, funcname, funcstack := GetStack(1)
+	outerr.Message = map[string]string{}
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
 		if has {
-			outerr.Message = map[string]string{
-				"En_US": formatString(msg["en_US"], nil),
-				"Vi_VN": formatString(msg["vi_VN"], nil),
-			}
+			outerr.Message["en_US"] = formatString(msg["en_US"], nil)
+			outerr.Message["vi_VN"] = formatString(msg["vi_VN"], nil)
 		}
 	}
 

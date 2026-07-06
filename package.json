@@ -1,14 +1,11 @@
 {
   "name": "@subiz/log",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Dead simple logging package for streaming log to syslog",
   "main": "main.js",
   "scripts": {
     "build": "node build.js"
   },
   "author": "Pham Kieu Thanh",
-  "license": "ISC",
-  "devDependencies": {
-    "prettier": "^3.1.1"
-  }
+  "license": "ISC"
 }

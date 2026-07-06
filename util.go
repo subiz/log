@@ -39,30 +39,46 @@ func trimToPrefix(str, prefix string) string {
 // System paths are ignored, and paths within the 'vendor' directory are truncated to '/vendor/'.
 //
 // Parameters:
-//   skip: The number of stack frames to ignore from the beginning of the call stack (useful for skipping internal helper functions).
+//
+//	skip: The number of stack frames to ignore from the beginning of the call stack (useful for skipping internal helper functions).
 //
 // Returns:
-//   string: A formatted string representing the stack trace, with each frame in the format "file:line" and separated by " | ".
-//   string: The name of the function at the top of the captured stack trace (after skipping).
-//   string: A pipe-separated string of all function names in the call stack (after skipping).
+//
+//	string: A formatted string representing the stack trace, with each frame in the format "file:line" and separated by " | ".
+//	string: The name of the function at the top of the captured stack trace (after skipping).
+//	string: A pipe-separated string of all function names in the call stack (after skipping).
 func GetStack(skip int) (string, string, string) {
-	stack := make([]uintptr, 10)
-	var sb strings.Builder
+	// stack-allocated array avoids a heap allocation for the common case
+	var pcs [10]uintptr
 	// skip one system stack, the this current stack line
-	length := runtime.Callers(4+skip, stack[:])
+	length := runtime.Callers(4+skip, pcs[:])
+
+	var sb strings.Builder     // the "file:line" stack
+	var funcsb strings.Builder // the pipe-separated function names
+	var numbuf [20]byte        // scratch for the line number, avoids strconv.Itoa allocs
 	funcname := ""
-	first := -1
-	funcstack := ""
+	first := true
 	for i := 0; i < length; i++ {
-		pc := stack[i]
+		pc := pcs[i]
 		// pc - 1 because the program counters we use are usually return addresses,
 		// and we want to show the line that corresponds to the function call
 		function := runtime.FuncForPC(pc - 1)
-		// funcstack=/github.com/subiz/log.EServer | github.com/subiz/log_test.E | github.com/subiz/log_test.DDDDDD | github.com/subiz/log_test.CCCCCC | github.com/subiz/log_test.B | github.com/subiz/log_test.A | github.com/subiz/log_test.TestError | testing.tRunner | runtime.goexit
-		funcstack += function.Name() + " | "
+		name := function.Name()
+
+		funcsb.WriteString(name)
+		funcsb.WriteString(" | ")
 		if i == 0 {
-			funcname = function.Name()
+			funcname = name
 		}
+
+		// dont report the Go runtime frames (e.g. runtime.main, runtime.goexit);
+		// their file path is the Go SDK, which varies by install location, so
+		// filter by function package instead of by path. checked before FileLine
+		// (comparatively expensive) so skipped frames don't pay for it.
+		if strings.HasPrefix(name, "runtime.") {
+			continue
+		}
+
 		file, line := function.FileLine(pc - 1)
 		file = trimToPrefix(file, "/vendor/")
 		// dont report system path
@@ -79,14 +95,20 @@ func GetStack(skip int) (string, string, string) {
 			file = trimOutPrefix(file, "/gopkg.in/")
 		}
 
-		if first == -1 {
-			first = i
+		if first {
+			first = false
 		} else {
 			sb.WriteString(" | ")
 		}
-		sb.WriteString(file + ":" + strconv.Itoa(line))
+		sb.WriteString(hostname)
+		if !strings.HasPrefix(file, "/") {
+			sb.WriteByte('/')
+		}
+		sb.WriteString(file)
+		sb.WriteByte(':')
+		sb.Write(strconv.AppendInt(numbuf[:0], int64(line), 10))
 	}
-	return sb.String(), funcname, funcstack
+	return sb.String(), funcname, funcsb.String()
 }
 
 func Stack() string {

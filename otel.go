@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -17,6 +18,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 var loggerProvider *sdklog.LoggerProvider
@@ -26,6 +28,16 @@ var tracer trace.Tracer
 var hostname string
 var logServerHost string
 var logServerSecret string
+
+// otelDisabled reports whether OpenTelemetry tracing/log export should be
+// turned off for this process. Set the standard OTEL_SDK_DISABLED=true to opt
+// out — in that mode no spans are recorded/exported and error/log reports are
+// delivered to /collect/ (the same lightweight pipeline used by log.Err)
+// instead of the OTLP /v1/logs endpoint. Defaults to enabled so other services
+// keep full OpenTelemetry unchanged.
+func otelDisabled() bool {
+	return strings.EqualFold(os.Getenv("OTEL_SDK_DISABLED"), "true")
+}
 
 func init() {
 	hostname, _ = os.Hostname()
@@ -51,6 +63,17 @@ func init() {
 		}()
 	}
 
+	if otelDisabled() {
+		// Lightweight mode: leave the global TracerProvider as a no-op so that
+		// instrumentation (e.g. otelgrpc) creates non-recording spans and does
+		// not allocate or export anything. Error/log reports go to /collect/
+		// via collectHandler instead of the OTLP /v1/logs endpoint.
+		tracer = noop.NewTracerProvider().Tracer("")
+		otel.SetTracerProvider(noop.NewTracerProvider())
+		logger = slog.New(&collectHandler{})
+		return
+	}
+
 	loggerProvider = newLoggerProvider(nil)
 	scope := ""
 	logger = slog.New(otelslog.NewHandler(scope, otelslog.WithLoggerProvider(loggerProvider)))
@@ -62,14 +85,37 @@ func init() {
 var defaultsloghandler = slog.Default().Handler()
 
 func Shutdown() {
-	if err := loggerProvider.Shutdown(context.Background()); err != nil {
-		fmt.Println(err)
+	// Lightweight mode has no OTLP providers to flush; just drain /collect/.
+	if loggerProvider != nil {
+		if err := loggerProvider.Shutdown(context.Background()); err != nil {
+			fmt.Println(err)
+		}
 	}
-
-	if err := traceProvider.Shutdown(context.Background()); err != nil {
-		fmt.Println(err)
+	if traceProvider != nil {
+		if err := traceProvider.Shutdown(context.Background()); err != nil {
+			fmt.Println(err)
+		}
 	}
+	flushLog()
 }
+
+// collectHandler is an slog.Handler that queues records for delivery to the
+// /collect/ endpoint instead of exporting them as OpenTelemetry logs. It keeps
+// error/info reporting working without any OTLP/tracing dependency.
+type collectHandler struct {
+	attrs []slog.Attr
+}
+
+func (h *collectHandler) Enabled(_ context.Context, _ slog.Level) bool { return true }
+
+func (h *collectHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	na := make([]slog.Attr, 0, len(h.attrs)+len(attrs))
+	na = append(na, h.attrs...)
+	na = append(na, attrs...)
+	return &collectHandler{attrs: na}
+}
+
+func (h *collectHandler) WithGroup(_ string) slog.Handler { return h }
 
 func newTraceProvider() *sdktrace.TracerProvider {
 	opts := []sdktrace.TracerProviderOption{}
@@ -124,6 +170,62 @@ func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 	// stdoutexporter := &slogExporter{}
 	// opts = append(opts, log.WithProcessor(log.NewBatchProcessor(stdoutexporter)))
 	return sdklog.NewLoggerProvider(opts...)
+}
+
+func (h *collectHandler) Handle(_ context.Context, r slog.Record) error {
+	if logServerSecret == "" {
+		return nil
+	}
+
+	level := "LOG"
+	if r.Level >= slog.LevelError {
+		level = "ERROR"
+	}
+
+	accid := "subiz"
+	caller := "-"
+	var msg strings.Builder
+	msg.WriteString(r.Message)
+
+	appendAttr := func(a slog.Attr) {
+		switch a.Key {
+		case "account_id":
+			if s := a.Value.String(); s != "" {
+				accid = s
+			}
+		case "_stack":
+			// keep only the closest frame as the caller column; the full
+			// stack is already embedded in error payloads.
+			if s := a.Value.String(); s != "" {
+				if i := strings.Index(s, " | "); i >= 0 {
+					caller = s[:i]
+				} else {
+					caller = s
+				}
+			}
+		default:
+			msg.WriteByte(' ')
+			msg.WriteString(a.Key)
+			msg.WriteByte('=')
+			msg.WriteString(a.Value.String())
+		}
+	}
+	for _, a := range h.attrs {
+		appendAttr(a)
+	}
+	r.Attrs(func(a slog.Attr) bool {
+		appendAttr(a)
+		return true
+	})
+
+	line := r.Time.Format("06-01-02 15:04:05") + " app " + level + " " + hostname + " " + accid + " " + caller + " " + msg.String()
+
+	logmaplock.Lock()
+	if len(logmap) < LIMIT_LOG_MAP_LENGTH {
+		logmap = append(logmap, line)
+	}
+	logmaplock.Unlock()
+	return nil
 }
 
 func DebugContext(ctx context.Context, msg string, args ...any) {

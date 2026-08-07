@@ -25,7 +25,6 @@ var loggerProvider *sdklog.LoggerProvider
 var traceProvider *sdktrace.TracerProvider
 var logger *slog.Logger
 var tracer trace.Tracer
-var hostname string
 var logServerHost string
 var logServerSecret string
 
@@ -40,8 +39,6 @@ func otelDisabled() bool {
 }
 
 func init() {
-	hostname, _ = os.Hostname()
-
 	logServerHost = os.Getenv("LOG_SERVER_HOST")
 	if logServerHost == "" {
 		logServerHost = "https://log.subiz.net"

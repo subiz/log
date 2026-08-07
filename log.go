@@ -11,9 +11,13 @@ import (
 )
 
 var w *Writer
+var hostname string
 
 func init() {
-	hostname, _ := os.Hostname()
+	envhostname := os.Getenv("LOG_HOSTNAME")
+	if envhostname == "" {
+		hostname, _ = os.Hostname() // call-callvnpt
+	}
 	service := strings.Split(hostname, "-")[0]
 	w = &Writer{hostname: hostname, service: service}
 }

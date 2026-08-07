@@ -14,8 +14,8 @@ var w *Writer
 var hostname string
 
 func init() {
-	envhostname := os.Getenv("LOG_HOSTNAME")
-	if envhostname == "" {
+	hostname = os.Getenv("LOG_HOSTNAME")
+	if hostname == "" {
 		hostname, _ = os.Hostname() // call-callvnpt
 	}
 	service := strings.Split(hostname, "-")[0]

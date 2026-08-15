@@ -1,10 +1,81 @@
-
 /* GENERATED FILE, DO NOT EDIT */
 package log
 
 type H map[string]string
 
 var ErrorTable = map[E]H{
+	"record_type_not_empty": H{
+		"vi_VN": "Không thể lưu trữ loại bản ghi vì vẫn còn bản ghi chưa xoá. Hãy xoá các bản ghi trước rồi thử lại.",
+		"en_US": "This record type cannot be archived while it still contains non-deleted records. Delete those records and try again.",
+	},
+	"record_type_archived": H{
+		"vi_VN": "Loại bản ghi đã được lưu trữ nên không thể nhận thêm bản ghi mới. Hãy khôi phục loại bản ghi để tiếp tục.",
+		"en_US": "This record type is archived and cannot accept new records. Restore the record type to continue.",
+	},
+	"default_record_type_cannot_archive": H{
+		"vi_VN": "Không thể lưu trữ loại bản ghi mặc định.",
+		"en_US": "A default record type cannot be archived.",
+	},
+	"record_type_already_exists": H{
+		"vi_VN": "Loại bản ghi này đã tồn tại. Vui lòng chọn một mã khác.",
+		"en_US": "This record type already exists. Choose a different ID.",
+	},
+	"invalid_record_type_category": H{
+		"vi_VN": "Phân loại bản ghi không hợp lệ. Vui lòng chọn một phân loại được hỗ trợ.",
+		"en_US": "The record type category is invalid. Choose a supported category.",
+	},
+	"record_type_category_immutable": H{
+		"vi_VN": "Không thể thay đổi phân loại sau khi loại bản ghi đã được tạo.",
+		"en_US": "The category cannot be changed after the record type is created.",
+	},
+	"record_type_pipeline_immutable": H{
+		"vi_VN": "Không thể thay đổi pipeline sau khi loại bản ghi đã được tạo.",
+		"en_US": "The pipeline cannot be changed after the record type is created.",
+	},
+	"pipeline_already_exists": H{
+		"vi_VN": "Pipeline này đã tồn tại. Vui lòng chọn một mã khác.",
+		"en_US": "This pipeline already exists. Choose a different ID.",
+	},
+	"pipeline_in_use": H{
+		"vi_VN": "Không thể xoá pipeline vì vẫn đang được một loại bản ghi sử dụng.",
+		"en_US": "This pipeline cannot be deleted because it is still used by a record type.",
+	},
+	"pipeline_stage_not_found": H{
+		"vi_VN": "Giai đoạn đã chọn không tồn tại trong pipeline.",
+		"en_US": "The selected stage does not exist in the pipeline.",
+	},
+	"pipeline_stage_removal_not_supported": H{
+		"vi_VN": "Không thể xoá một giai đoạn khỏi pipeline sau khi pipeline đã được tạo.",
+		"en_US": "A stage cannot be removed after the pipeline is created.",
+	},
+	"record_type_pipeline_missing": H{
+		"vi_VN": "Loại bản ghi chưa được cấu hình pipeline. Vui lòng liên hệ Subiz để được hỗ trợ.",
+		"en_US": "The record type has no configured pipeline. Contact Subiz for support.",
+	},
+	"invalid_record_id": H{
+		"vi_VN": "Mã bản ghi không hợp lệ.",
+		"en_US": "The record ID is invalid.",
+	},
+	"invalid_record_type_id": H{
+		"vi_VN": "Mã loại bản ghi không hợp lệ.",
+		"en_US": "The record type ID is invalid.",
+	},
+	"pipeline_stages_required": H{
+		"vi_VN": "Pipeline phải có ít nhất một giai đoạn.",
+		"en_US": "A pipeline must contain at least one stage.",
+	},
+	"invalid_pipeline_stage_id": H{
+		"vi_VN": "Mã giai đoạn của pipeline không hợp lệ.",
+		"en_US": "The pipeline stage ID is invalid.",
+	},
+	"duplicate_pipeline_stage_id": H{
+		"vi_VN": "Các giai đoạn trong cùng một pipeline không được trùng mã.",
+		"en_US": "Stages in the same pipeline cannot have duplicate IDs.",
+	},
+	"invalid_tag_id": H{
+		"vi_VN": "Mã thẻ không hợp lệ.",
+		"en_US": "The tag ID is invalid.",
+	},
 	"invalid_kb_handle": H{
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'",

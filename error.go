@@ -124,6 +124,208 @@ const E_zalo_zns_oa_quota_exceeded = "zalo_zns_oa_quota_exceeded"
 const E_zalo_zns_template_quota_exceeded = "zalo_zns_template_quota_exceeded"
 const E_zalo_zns_template_manage_quota_exceeded = "zalo_zns_template_manage_quota_exceeded"
 const E_timeout = "timeout"
+const E_record_type_not_empty E = "record_type_not_empty"
+const E_record_type_archived E = "record_type_archived"
+const E_default_record_type_cannot_archive E = "default_record_type_cannot_archive"
+const E_record_type_already_exists E = "record_type_already_exists"
+const E_invalid_record_type_category E = "invalid_record_type_category"
+const E_record_type_category_immutable E = "record_type_category_immutable"
+const E_record_type_pipeline_immutable E = "record_type_pipeline_immutable"
+const E_pipeline_already_exists E = "pipeline_already_exists"
+const E_pipeline_in_use E = "pipeline_in_use"
+const E_pipeline_stage_not_found E = "pipeline_stage_not_found"
+const E_pipeline_stage_removal_not_supported E = "pipeline_stage_removal_not_supported"
+const E_record_type_pipeline_missing E = "record_type_pipeline_missing"
+const E_invalid_record_id E = "invalid_record_id"
+const E_invalid_record_type_id E = "invalid_record_type_id"
+const E_pipeline_stages_required E = "pipeline_stages_required"
+const E_invalid_pipeline_stage_id E = "invalid_pipeline_stage_id"
+const E_duplicate_pipeline_stage_id E = "duplicate_pipeline_stage_id"
+const E_invalid_tag_id E = "invalid_tag_id"
+
+func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	return Error3(accid, nil, field, E_record_type_not_empty, E_invalid_input)
+}
+
+func ERecordTypeArchived(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	field["type"] = "record type"
+	field["id"] = recordTypeID
+	return Error3(accid, nil, field, E_record_type_archived, E_inactive_resource)
+}
+
+func EDefaultRecordTypeCannotArchive(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	return Error3(accid, nil, field, E_default_record_type_cannot_archive, E_invalid_input)
+}
+
+func ERecordTypeAlreadyExists(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	return Error3(accid, nil, field, E_record_type_already_exists, E_invalid_input)
+}
+
+func EInvalidRecordTypeCategory(accid, category string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["category"] = category
+	field["name"] = "record_type.category"
+	field["value"] = category
+	return Error3(accid, nil, field, E_invalid_record_type_category, E_invalid_field, E_invalid_input)
+}
+
+func ERecordTypeCategoryImmutable(accid, recordTypeID, currentCategory, requestedCategory string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	field["current_category"] = currentCategory
+	field["requested_category"] = requestedCategory
+	return Error3(accid, nil, field, E_record_type_category_immutable, E_invalid_input)
+}
+
+func ERecordTypePipelineImmutable(accid, recordTypeID, currentPipelineID, requestedPipelineID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	field["current_pipeline_id"] = currentPipelineID
+	field["requested_pipeline_id"] = requestedPipelineID
+	return Error3(accid, nil, field, E_record_type_pipeline_immutable, E_invalid_input)
+}
+
+func EPipelineAlreadyExists(accid, pipelineID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	return Error3(accid, nil, field, E_pipeline_already_exists, E_invalid_input)
+}
+
+func EPipelineInUse(accid, pipelineID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	return Error3(accid, nil, field, E_pipeline_in_use, E_invalid_input)
+}
+
+func EPipelineStageNotFound(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	field["type"] = "pipeline stage"
+	field["id"] = pipelineStageID
+	return Error3(accid, nil, field, E_pipeline_stage_not_found, E_missing_resource, E_invalid_input)
+}
+
+func EPipelineStageRemovalNotSupported(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	return Error3(accid, nil, field, E_pipeline_stage_removal_not_supported, E_invalid_input)
+}
+
+func ERecordTypePipelineMissing(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	return Error3(accid, nil, field, E_record_type_pipeline_missing, E_internal)
+}
+
+func EInvalidRecordID(accid, recordID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_id"] = recordID
+	field["name"] = "record.id"
+	field["value"] = recordID
+	return Error3(accid, nil, field, E_invalid_record_id, E_invalid_field, E_invalid_input)
+}
+
+func EInvalidRecordTypeID(accid, recordTypeID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["record_type_id"] = recordTypeID
+	field["name"] = "record_type_id"
+	field["value"] = recordTypeID
+	return Error3(accid, nil, field, E_invalid_record_type_id, E_invalid_field, E_invalid_input)
+}
+
+func EPipelineStagesRequired(accid, pipelineID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	return Error3(accid, nil, field, E_pipeline_stages_required, E_invalid_input)
+}
+
+func EInvalidPipelineStageID(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	field["name"] = "pipeline_stage.id"
+	field["value"] = pipelineStageID
+	return Error3(accid, nil, field, E_invalid_pipeline_stage_id, E_invalid_field, E_invalid_input)
+}
+
+func EDuplicatePipelineStageID(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	return Error3(accid, nil, field, E_duplicate_pipeline_stage_id, E_invalid_input)
+}
+
+func EInvalidTagID(accid, tagID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["tag_id"] = tagID
+	field["name"] = "tag_id"
+	field["value"] = tagID
+	return Error3(accid, nil, field, E_invalid_tag_id, E_invalid_field, E_invalid_input)
+}
 
 func EInvalidUrl(accid, url string, fields ...M) *AError {
 	var field = M{}

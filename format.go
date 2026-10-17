@@ -44,6 +44,10 @@ func formatString(us string, data map[string]any) string {
 					param += string(s[j])
 					j++
 				}
+				// An unfinished placeholder is literal text, even if data has its key.
+				if j == len(s) {
+					return output + string(ESCCHAR) + param
+				}
 				if len(param) > 0 {
 					if !isAlphabet(s[j]) {
 						output = output + string(ESCCHAR) + param[0:len(param)-1]

@@ -199,6 +199,36 @@ Traces:
 
 ### Development
 
+#### Tra cứu hàm lỗi có sẵn
+
+Ưu tiên chọn hàm theo ý nghĩa lỗi trong bảng dưới đây trước khi tạo hàm mới. Đây là các hàm phổ biến; xem `error.go` để tìm thêm các lỗi nghiệp vụ cụ thể. Cột mã lỗi liệt kê mã chính trước, rồi đến các mã phân loại.
+
+Các hàm trong bảng đều nhận thêm `fields ...M` ở cuối để bổ sung ngữ cảnh, ví dụ `log.M{"account_id": accid, "record_id": recordID}`. Các hàm chỉ đọc map đầu tiên và sao chép map trước khi thêm thuộc tính; chúng không sửa map của bên gọi. Các giá trị bên trong map không được sao chép sâu. Thuộc tính có tiền tố `_` dành cho dữ liệu nội bộ và không được đưa vào `ToJSON()` trả cho người dùng.
+
+| Nhóm | Hàm và tham số chính | Khi nào dùng | Mã lỗi |
+| --- | --- | --- | --- |
+| Validation | `EInvalidField(accid, name, value string)` | Giá trị của một trường không hợp lệ | `invalid_field`, `invalid_input` |
+| Validation | `EInvalidInput(base error, required_fields []string, internal_message string)` | Đầu vào không đáp ứng yêu cầu, cần nêu các trường bắt buộc | `invalid_input` |
+| Validation | `EInvalidInputFormat(base error, fieldname, currentvalue, msg string)` | Giá trị sai định dạng | `invalid_input_format`, `invalid_input` |
+| Validation | `EInvalidUrl(accid, url string)` | URL không hợp lệ | `invalid_url`, `invalid_input` |
+| Validation | `EPayloadTooLarge(curSize, maxSize int64)` | Dữ liệu vượt kích thước cho phép | `payload_too_large`, `invalid_input` |
+| Giới hạn | `ELimitExceeded(capacity int64)` | Vượt hạn mức | `limit_exceeded`, `invalid_input` |
+| Giới hạn | `ERateLimit()` | Gửi yêu cầu quá nhanh | `rate_limit`, `limit_exceeded`, `invalid_input` |
+| Tài nguyên | `ENotFound(id, typ string)` / `EMissing(id, typ string)` | Không tìm thấy tài nguyên; hai hàm dùng cùng mã lỗi | `missing_resource` |
+| Tài nguyên | `EInactive(id, typ string)` | Tài nguyên không hoạt động | `inactive_resource` |
+| Quyền truy cập | `EDeny(userid, requiredPerm string)` | Không đủ quyền truy cập | `access_deny` |
+| Quyền truy cập | `EExpiredAccessToken()` | Access token đã hết hạn | `access_deny`, `access_token_expired` |
+| Quyền truy cập | `EAccountLocked(accid string)` | Tài khoản bị khoá | `locked_account` |
+| Hệ thống | `EServer(base error)` | Lỗi nội bộ | `internal` |
+| Hệ thống | `ERetry(base error)` | Lỗi nội bộ có thể thử lại | `internal`, `retryable` |
+| Hệ thống | `ETimeout()` | Xử lý quá thời gian, có thể thử lại | `timeout`, `internal`, `retryable` |
+| Hệ thống | `EServiceUnavailable(err error)` | Dịch vụ tạm thời không sẵn sàng | `service_unavailable`, `internal`, `retryable` |
+| Hệ thống | `EInternalConnect(base error)` | Lỗi kết nối nội bộ | `internal_connection`, `internal` |
+| Hệ thống | `EFS(base error, path string)` | Lỗi hệ thống file | `file_system_error`, `internal` |
+| Provider | `EProvider(base error, external_service, action string)` | Lỗi từ dịch vụ bên ngoài | `provider_failed`, `internal` |
+
+Các hàm `E...` trên tạo lỗi **và ghi log** qua `Error3`. Nếu chỉ muốn tạo hoặc bọc lỗi, dùng `NewError(base, fields, codes...)` hoặc `NewError2(ctx, base, codes, key, value, ...)`. `NewError2` nhận các cặp key/value và gắn thông tin trace từ context khi tạo lỗi mới; khi bọc `AError` có sẵn, giữ thông tin trace của lỗi gốc.
+
 #### Thêm một error mới
 
 **Ưu tiên dùng lại hàm lỗi có sẵn. Chỉ tạo hàm mới khi lỗi có ý nghĩa riêng mà các hàm hiện tại không diễn đạt được.** Trước khi thêm, tìm trong `error.go` và `errors.json`, đọc cả tham số, mã lỗi và thông báo của các lỗi tương tự. Khác endpoint, service, tên trường hoặc ID chưa phải lý do để tạo thêm hàm; hãy truyền thông tin đó qua tham số hoặc `fields ...M`.
@@ -221,10 +251,7 @@ Nếu thực sự cần lỗi mới, thực hiện đủ các bước sau:
    const E_record_type_not_empty E = "record_type_not_empty"
 
    func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
-       field := M{}
-       if len(fields) > 0 && fields[0] != nil {
-           field = fields[0]
-       }
+       field := copyErrorFields(fields...)
        field["record_type_id"] = recordTypeID
        return Error3(accid, nil, field, E_record_type_not_empty, E_invalid_input)
    }
@@ -245,4 +272,6 @@ Nếu thực sự cần lỗi mới, thực hiện đủ các bước sau:
    node build.js
    ```
 
-   Có thể dùng `npm run build` tương đương. Lệnh này sinh lại `error_table.go`; không tự sinh hằng số hoặc hàm trong `error.go`. Không sửa trực tiếp `error_table.go`. Kiểm tra diff và commit cùng các thay đổi trong `error.go`, `errors.json` và `error_table.go`.
+   Có thể dùng `npm run build` tương đương. Build kiểm tra mã lỗi theo `snake_case`, đủ hai bản dịch không rỗng và bộ placeholder giống nhau giữa hai ngôn ngữ (ví dụ cùng dùng `{name}`). Build tự escape ký tự đặc biệt khi sinh chuỗi Go; nếu dữ liệu không hợp lệ, lệnh báo key cần sửa và không ghi đè bảng hiện tại.
+
+   Lệnh này sinh lại `error_table.go`; không tự sinh hằng số hoặc hàm trong `error.go`. Không sửa trực tiếp `error_table.go`. Kiểm tra diff và commit cùng các thay đổi trong `error.go`, `errors.json` và `error_table.go`.

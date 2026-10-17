@@ -169,38 +169,37 @@ func init() {
 	ErrorTable[E_upload_session_closed] = H{"en_US": "The upload session is closed.", "vi_VN": "Phiên tải lên đã đóng."}
 }
 
-func EUploadSessionExpired(uploadID string, fields ...M) *AError {
+// copyErrorFields preserves the first-map convention without mutating caller data.
+func copyErrorFields(fields ...M) M {
 	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
+	if len(fields) > 0 {
+		for key, value := range fields[0] {
+			field[key] = value
+		}
 	}
+	return field
+}
+
+func EUploadSessionExpired(uploadID string, fields ...M) *AError {
+	field := copyErrorFields(fields...)
 	field["upload_id"] = uploadID
 	return Error3("", nil, field, E_upload_session_expired, E_invalid_input)
 }
 
 func EUploadSessionClosed(uploadID string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["upload_id"] = uploadID
 	return Error3("", nil, field, E_upload_session_closed, E_invalid_input)
 }
 
 func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	return Error3(accid, nil, field, E_record_type_not_empty, E_invalid_input)
 }
 
 func ERecordTypeArchived(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	field["type"] = "record type"
 	field["id"] = recordTypeID
@@ -208,28 +207,19 @@ func ERecordTypeArchived(accid, recordTypeID string, fields ...M) *AError {
 }
 
 func EDefaultRecordTypeCannotArchive(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	return Error3(accid, nil, field, E_default_record_type_cannot_archive, E_invalid_input)
 }
 
 func ERecordTypeAlreadyExists(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	return Error3(accid, nil, field, E_record_type_already_exists, E_invalid_input)
 }
 
 func EInvalidRecordTypeCategory(accid, category string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["category"] = category
 	field["name"] = "record_type.category"
 	field["value"] = category
@@ -237,10 +227,7 @@ func EInvalidRecordTypeCategory(accid, category string, fields ...M) *AError {
 }
 
 func ERecordTypeCategoryImmutable(accid, recordTypeID, currentCategory, requestedCategory string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	field["current_category"] = currentCategory
 	field["requested_category"] = requestedCategory
@@ -248,10 +235,7 @@ func ERecordTypeCategoryImmutable(accid, recordTypeID, currentCategory, requeste
 }
 
 func ERecordTypePipelineImmutable(accid, recordTypeID, currentPipelineID, requestedPipelineID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	field["current_pipeline_id"] = currentPipelineID
 	field["requested_pipeline_id"] = requestedPipelineID
@@ -259,28 +243,19 @@ func ERecordTypePipelineImmutable(accid, recordTypeID, currentPipelineID, reques
 }
 
 func EPipelineAlreadyExists(accid, pipelineID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	return Error3(accid, nil, field, E_pipeline_already_exists, E_invalid_input)
 }
 
 func EPipelineInUse(accid, pipelineID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	return Error3(accid, nil, field, E_pipeline_in_use, E_invalid_input)
 }
 
 func EPipelineStageNotFound(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	field["type"] = "pipeline stage"
@@ -289,29 +264,20 @@ func EPipelineStageNotFound(accid, pipelineID, pipelineStageID string, fields ..
 }
 
 func EPipelineStageRemovalNotSupported(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	return Error3(accid, nil, field, E_pipeline_stage_removal_not_supported, E_invalid_input)
 }
 
 func ERecordTypePipelineMissing(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	return Error3(accid, nil, field, E_record_type_pipeline_missing, E_internal)
 }
 
 func EInvalidRecordID(accid, recordID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_id"] = recordID
 	field["name"] = "record.id"
 	field["value"] = recordID
@@ -319,10 +285,7 @@ func EInvalidRecordID(accid, recordID string, fields ...M) *AError {
 }
 
 func EInvalidRecordTypeID(accid, recordTypeID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["record_type_id"] = recordTypeID
 	field["name"] = "record_type_id"
 	field["value"] = recordTypeID
@@ -330,19 +293,13 @@ func EInvalidRecordTypeID(accid, recordTypeID string, fields ...M) *AError {
 }
 
 func EPipelineStagesRequired(accid, pipelineID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	return Error3(accid, nil, field, E_pipeline_stages_required, E_invalid_input)
 }
 
 func EInvalidPipelineStageID(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	field["name"] = "pipeline_stage.id"
@@ -351,20 +308,14 @@ func EInvalidPipelineStageID(accid, pipelineID, pipelineStageID string, fields .
 }
 
 func EDuplicatePipelineStageID(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	return Error3(accid, nil, field, E_duplicate_pipeline_stage_id, E_invalid_input)
 }
 
 func EInvalidTagID(accid, tagID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["tag_id"] = tagID
 	field["name"] = "tag_id"
 	field["value"] = tagID
@@ -372,10 +323,7 @@ func EInvalidTagID(accid, tagID string, fields ...M) *AError {
 }
 
 func EInvalidPipelineStageCategory(accid, pipelineID, pipelineStageID, category string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	field["category"] = category
@@ -385,10 +333,7 @@ func EInvalidPipelineStageCategory(accid, pipelineID, pipelineStageID, category 
 }
 
 func EPipelineStageCategoryImmutable(accid, pipelineID, pipelineStageID, currentCategory, requestedCategory string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	field["current_category"] = currentCategory
@@ -397,76 +342,52 @@ func EPipelineStageCategoryImmutable(accid, pipelineID, pipelineStageID, current
 }
 
 func EPipelineStageCategoryRequired(accid, pipelineID, category string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["category"] = category
 	return Error3(accid, nil, field, E_pipeline_stage_category_required, E_invalid_input)
 }
 
 func EPipelineUpdateInProgress(accid, pipelineID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	return Error3(accid, nil, field, E_pipeline_update_in_progress, E_invalid_input)
 }
 
 func EPipelineStageDeleting(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["pipeline_id"] = pipelineID
 	field["pipeline_stage_id"] = pipelineStageID
 	return Error3(accid, nil, field, E_pipeline_stage_deleting, E_invalid_input)
 }
 
 func EInvalidUrl(accid, url string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["url"] = url
 	return Error3(accid, nil, field, E_invalid_url, E_invalid_input)
 }
 
 func EUnverifiedDomain(accid, domain string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["domain"] = domain
 	return Error3(accid, nil, field, E_unverified_domain, E_invalid_domain, E_invalid_url, E_invalid_input)
 }
 
 func EInvalidDomain(accid, domain string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["domain"] = domain
 	return Error3(accid, nil, field, E_invalid_domain, E_invalid_url, E_invalid_input)
 }
 
 func EUnsupportedFileFormat(accid, fileformat string, supporteds []string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_format"] = fileformat
 	field["supported"] = strings.Join(supporteds, ", ")
 	return Error3(accid, nil, field, E_unsupported_file_format, E_invalid_input)
 }
 
 func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["ip"] = ip
 	field["_url"] = url
 	field["_ref"] = ref
@@ -474,29 +395,20 @@ func EApiHttpUnsupported(ip, url, ref string, fields ...M) *AError {
 }
 
 func EMetaCustomAudienceTermConsentRequired(adaccid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["ad_account_id"] = adaccid
 	return Error3("", nil, field, E_meta_custom_audience_term_consent_required, E_invalid_input)
 }
 
 func EInvalidKbHandle(accid, kb, handle string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["kb"] = kb
 	field["handle"] = handle
 	return Error3(accid, nil, field, E_invalid_kb_handle, E_invalid_input)
 }
 
 func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 
 	field["kb"] = kb
 	field["handle"] = handle
@@ -504,221 +416,149 @@ func EDupKbHandle(accid, kb, handle string, fields ...M) *AError {
 }
 
 func EClosePublicChannel(accid, convoid, channel string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["conversation_id"] = convoid
 	field["channel"] = channel
 	return Error3(accid, nil, field, E_close_public_channel, E_invalid_input)
 }
 
 func EPasswordTooWeak(fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_password_too_weak, E_invalid_input)
 }
 
 func EGoogle(err error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_google_error, E_internal, E_retryable)
 }
 
 func EInvalidPromotionCode(code string, errors []string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["promotion_code"] = code
 	field["errors"] = errors
 	return Error3("", nil, field, E_invalid_promotion_code, E_invalid_input)
 }
 
 func EInvalidCurrency(accid, cur string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["currency"] = cur
 	return Error3(accid, nil, field, E_invalid_currency, E_invalid_input)
 }
 
 func EStillHaveOpenInvoice(accid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3(accid, nil, field, E_still_have_open_invoice, E_invalid_subscription, E_invalid_input)
 }
 
 func ELeaverIsTheLastOneInConvo(accid, convoid, issuerid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["conversation_id"] = convoid
 	field["issuer_id"] = issuerid
 	return Error3(accid, nil, field, E_leaver_is_the_last_one_in_conversation, E_access_deny, E_invalid_input)
 }
 
 func ENotAMember(accid, convoid, issuerid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["conversation_id"] = convoid
 	field["issuer_id"] = issuerid
 	return Error3(accid, nil, field, E_not_a_conversation_member, E_access_deny, E_invalid_input)
 }
 
 func EInvalidWebhookUrl(accid, webhookurl string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["webhook_url"] = webhookurl
 	return Error3(accid, nil, field, E_invalid_webhook_url, E_invalid_input)
 }
 
 func EInvalidOTP(username, otp string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["username"] = username
 	field["otp"] = otp
 	return Error3("", nil, field, E_invalid_otp, E_invalid_input)
 }
 
 func EInactiveNumber(accid, number string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["number"] = number
 	return Error3(accid, nil, field, E_inactive_number, E_invalid_integration, E_invalid_input)
 }
 
 func EBlockedNumber(accid, number string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["number"] = number
 	return Error3(accid, nil, field, E_blocked_number, E_invalid_integration, E_invalid_input)
 }
 
 func EInviteLinkExpired(link string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["link"] = link
 	return Error3("", nil, field, E_invite_link_expired, E_invalid_input)
 }
 
 func EInvalidIntegration(accid, inteid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["integration_id"] = inteid
 	return Error3(accid, nil, field, E_invalid_integration, E_invalid_input)
 }
 
 func EMalformedRequest(accid, code string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["code"] = code
 	return Error3(accid, nil, field, E_malformed_request, E_invalid_input)
 }
 
 func ENumberNotBounded(ctx context.Context, accid, number string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["number"] = number
 	return Error3(accid, nil, field, E_unassigned_number, E_invalid_input)
 }
 
 func EConversationEnded(accid, convoid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["conversation_id"] = convoid
 	return Error3(accid, nil, field, E_conversation_ended, E_invalid_input)
 }
 
 func EInvalidPasswordLength(currentLength, requiredLength int, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["current_length"] = currentLength
 	field["required_length"] = requiredLength
 	return Error3("", nil, field, E_invalid_password_length, E_invalid_input)
 }
 
 func EEmailTaken(email string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["email"] = email
 	return Error3("", nil, field, E_email_taken, E_invalid_input)
 }
 
 func EInvalidPollConnection(accid, id string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["connection_id"] = id
 	return Error3(accid, nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EDeadPollConnection(accid, id string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["connection_id"] = id
 	return Error3(accid, nil, field, E_invalid_connection, E_invalid_input)
 }
 
 func EInvalidField(accid, name, value string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["name"] = name
 	field["value"] = value
 	return Error3(accid, nil, field, E_invalid_field, E_invalid_input)
 }
 
 func EDupplicateContactUpdate(accid, emailorphone string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["prop"] = emailorphone
 	return Error3(accid, nil, field, E_dupplicate_contact_update, E_invalid_input)
 }
 
 func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["credit_id"] = creditid
 	field["credit_name"] = creditname
 	field["service"] = service
@@ -726,83 +566,56 @@ func ENotEnoughCredit(accid, creditid, creditname, service string, fields ...M) 
 }
 
 func EInvalidZaloToken(accid, oaid, oaName string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["oa_id"] = oaid
 	field["oa_name"] = oaName
 	return Error3(accid, nil, field, E_invalid_zalo_token, E_service_unavailable, E_internal)
 }
 
 func EInvalidFacebookToken(accid, pageid, pageName string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["page_id"] = pageid
 	field["page_name"] = pageName
 	return Error3(accid, nil, field, E_invalid_facebook_token, E_service_unavailable, E_internal)
 }
 
 func EInvalidGoogleToken(accid, locationId, locationName string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["location_id"] = locationId
 	field["location_name"] = locationName
 	return Error3(accid, nil, field, E_invalid_google_token, E_service_unavailable, E_internal)
 }
 
 func EServiceUnavailable(err error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", err, field, E_service_unavailable, E_internal, E_retryable)
 }
 
 func EPayloadTooLarge(curSize int64, maxSize int64, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["current_size"] = curSize
 	field["maximum_size"] = maxSize
 	return Error3("", nil, field, E_payload_too_large, E_invalid_input)
 }
 
 func ELimitExceeded(capacity int64, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["capacity"] = capacity
 	return Error3("", nil, field, E_limit_exceeded, E_invalid_input)
 }
 
 func ERateLimit(fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_rate_limit, E_limit_exceeded, E_invalid_input)
 }
 
 func EMissingId(typ string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_missing_id, E_invalid_input)
 }
 
 func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["invalid_field"] = fieldname
 	field["invalid_value"] = currentvalue
 	field["msg"] = msg
@@ -810,160 +623,106 @@ func EInvalidInputFormat(base error, fieldname, currentvalue string, msg string,
 }
 
 func EInvalidInput(base error, required_fields []string, internal_message string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["required_fields"] = required_fields
 	return Error3("", base, field, E_invalid_input)
 }
 
 func EInput(base error, f string, message string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["field"] = f
 	field["message"] = message
 	return Error3("", base, field, E_invalid_input)
 }
 
 func EAgentLocked(accid, agentid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["agent_id"] = agentid
 	return Error3(accid, nil, field, E_locked_agent)
 }
 
 func EAccountLocked(accid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3(accid, nil, field, E_locked_account)
 }
 
 func ERetry(base error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", base, field, E_internal, E_retryable)
 }
 
 func ETimeout(fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_timeout, E_internal, E_retryable)
 }
 
 func EServer(base error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", base, field, E_internal)
 }
 
 func EProvider(base error, external_service, action string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["external_service"] = external_service
 	field["action"] = action
 	return Error3("", base, field, E_provider_failed, E_internal)
 }
 
 func EParseInput(base error, payload []byte, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
 	return Error3("", base, field, E_invalid_input)
 }
 
 func EData(base error, payload []byte, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["size"] = len(payload)
 	field["payload"] = Substring(string(payload), 0, 200)
 	return Error3("", base, field, E_internal, E_transform_data, E_data_corrupted)
 }
 
 func EInternalConnect(base error, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", base, field, E_internal_connection, E_internal)
 }
 
 func EFS(base error, path string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["path"] = path
 	return Error3("", base, field, E_file_system_error, E_internal)
 }
 
 func ELockedUser(userid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["user_id"] = userid
 	return Error3("", nil, field, E_locked_user, E_access_deny)
 }
 
 func EDeny(userid string, requiredPerm string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["user_id"] = userid
 	return Error3("", nil, field, E_access_deny)
 }
 
 func EExpiredAccessToken(fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_access_deny, E_access_token_expired)
 }
 
 func EWrongPassword(fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_wrong_password)
 }
 
 func EUnsub(accid, userid string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["user_id"] = userid
 	return Error3(accid, nil, field, E_user_is_unsubscribed, E_invalid_input)
 }
 
 func EBanned(accid, userid string, internal_message string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["user_id"] = userid
 	return Error3(accid, nil, field, E_user_is_banned)
 }
@@ -973,141 +732,96 @@ func ErrContext(ctx context.Context, err error) error {
 }
 
 func EMissing(id, typ string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["type"] = typ
 	field["id"] = id
 	return Error3("", nil, field, E_missing_resource)
 }
 
 func ENotFound(id, typ string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["type"] = typ
 	field["id"] = id
 	return Error3("", nil, field, E_missing_resource)
 }
 
 func EInactive(id, typ string, fields ...M) *AError {
-	var field = M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["type"] = typ
 	field["id"] = id
 	return Error3("", nil, field, E_inactive_resource)
 }
 
 func EUploadIdempotencyConflict(uploadID string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["upload_id"] = uploadID
 	return Error3("", nil, field, E_upload_idempotency_conflict, E_invalid_input)
 }
 
 func EUploadSizeMismatch(expected, actual int64, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["expected_size"] = expected
 	field["actual_size"] = actual
 	return Error3("", nil, field, E_upload_size_mismatch, E_invalid_input)
 }
 
 func EInvalidFileChecksum(fileID string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_id"] = fileID
 	return Error3("", nil, field, E_invalid_file_checksum, E_internal)
 }
 
 func EBlockedFileExtension(name string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_name"] = name
 	return Error3("", nil, field, E_blocked_file_extension, E_invalid_input)
 }
 
 func EFileProcessingFailed(fileID, causeCode string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_id"] = fileID
 	field["cause_code"] = causeCode
 	return Error3("", nil, field, E_file_processing_failed, E_internal)
 }
 
 func EFileProcessingLeaseLost(fileID string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_id"] = fileID
 	return Error3("", nil, field, E_file_processing_lease_lost, E_internal, E_retryable)
 }
 
 func EFileSourceRequired(fileID string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["file_id"] = fileID
 	return Error3("", nil, field, E_file_source_required, E_invalid_input)
 }
 
 func EFileTypeMismatch(actual, requiredPrefix string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["mime_type"] = actual
 	field["required_type_prefix"] = requiredPrefix
 	return Error3("", nil, field, E_file_type_mismatch, E_invalid_input)
 }
 
 func EDataURIRequiresImage(mimeType string, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["mime_type"] = mimeType
 	return Error3("", nil, field, E_data_uri_requires_image, E_invalid_input)
 }
 
 func EInvalidUploadMetadata(fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_invalid_upload_metadata, E_internal)
 }
 
 func EImportSourceHTTPError(httpStatus int, fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	field["source_http_status"] = httpStatus
 	return Error3("", nil, field, E_import_source_http_error, E_invalid_input)
 }
 
 func EImportSourceTimeout(fields ...M) *AError {
-	field := M{}
-	if len(fields) > 0 && fields[0] != nil {
-		field = fields[0]
-	}
+	field := copyErrorFields(fields...)
 	return Error3("", nil, field, E_import_source_timeout, E_invalid_input)
 }
 
@@ -1128,6 +842,12 @@ func IsErr(err error, code string) bool {
 
 // NewError creates or wraps a new error
 func NewError(err error, field M, codes ...E) *AError {
+	return newError(nil, err, field, codes, 1)
+}
+
+// newError owns construction and wrapping for both public constructors.
+// stackSkip compensates for this helper and each constructor's caller convention.
+func newError(ctx context.Context, err error, field M, codes []E, stackSkip int) *AError {
 	if err != nil {
 		mye, ok := err.(*AError)
 		if !ok {
@@ -1221,7 +941,7 @@ func NewError(err error, field M, codes ...E) *AError {
 		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
 	}
 
-	stack, funcname, funcstack := GetStack(0)
+	stack, funcname, funcstack := GetStack(stackSkip)
 	outerr.Message = map[string]string{}
 	if len(codes) > 0 {
 		msg, has := ErrorTable[codes[0]]
@@ -1263,6 +983,11 @@ func NewError(err error, field M, codes ...E) *AError {
 	outerr.Number = "SB" + prefix + "-" + errid
 	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Value: stack, Type: "string"}
 	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Value: hostname, Type: "string"}
+	if ctx != nil {
+		span := trace.SpanFromContext(ctx)
+		outerr.TraceId = span.SpanContext().TraceID().String()
+		outerr.SpanId = span.SpanContext().SpanID().String()
+	}
 	return outerr
 }
 
@@ -1293,170 +1018,17 @@ func Error(ctx context.Context, err error, code string, args ...any) *AError {
 	return outerr
 }
 
-// NewError creates or wraps a new error
+// NewError2 creates or wraps an error using context and key/value attributes.
 func NewError2(ctx context.Context, err error, codes []E, args ...any) *AError {
-	if err != nil {
-		mye, ok := err.(*AError)
-		if !ok {
-			// casting to err failed
-			// dont give up yet, fallback to json
-			errstr := err.Error()
-			if strings.HasPrefix(errstr, "#ERR ") {
-				roote := &AError{}
-				if er := json.Unmarshal([]byte(errstr[len("#ERR "):]), roote); er == nil {
-					if roote.Code != "" && roote.Class != 0 { // valid err
-						mye = roote
-					}
-				}
-			}
-		} else {
-			mye = mye.Clone()
-		}
-
-		// our error
-		if mye != nil {
-			for i := 0; i < len(args)-1; i += 2 {
-				keyi := args[i]
-				if keyi == nil {
-					continue
-				}
-				key, _ := keyi.(string)
-				if key == "" {
-					continue
-				}
-				value := args[i+1]
-				if value == nil {
-					continue
-				}
-				valtype := getValueType(value)
-				if key[0] == '_' {
-					if mye.XHiddenAttrs == nil {
-						mye.XHiddenAttrs = map[string]*ErrorAttribute{}
-					}
-
-					mye.XHiddenAttrs[key[1:]] = &ErrorAttribute{Value: rawify(value), Type: valtype}
-				} else {
-					if mye.Attrs == nil {
-						mye.Attrs = map[string]*ErrorAttribute{}
-					}
-
-					mye.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
-				}
-			}
-
-			// append codes once, after all args are merged. Doing this
-			// inside the args loop duplicates every code per arg pair.
-			codestr := mye.Code
-			for _, code := range codes {
-				if codestr == "" {
-					codestr = string(code)
-					continue
-				}
-				codestr += "," + string(code)
-			}
-			mye.Code = codestr
-			return mye
-		}
-	}
-
-	outerr := &AError{Id: toBase58(time.Now().Unix()/3600) + toBase58(rand.Int64())}
-	// backward compatible, remove in future
-	outerr.Class = 400
-	codestr := ""
-	retryable := false
-	for i, code := range codes {
-		if code == E_retryable {
-			retryable = true
-		}
-		if code == E_internal {
-			outerr.Class = 500
-		}
-
-		if i == 0 {
-			codestr = string(code)
+	field := M{}
+	for i := 0; i+1 < len(args); i += 2 {
+		key, ok := args[i].(string)
+		if !ok || key == "" || args[i+1] == nil {
 			continue
 		}
-		codestr += "," + string(code)
+		field[key] = args[i+1]
 	}
-	outerr.Code = codestr
-	outerr.Attrs = map[string]*ErrorAttribute{}
-	outerr.XHiddenAttrs = map[string]*ErrorAttribute{}
-
-	var overridemsg map[string]string
-	var _funcname string
-	for i := 0; i < len(args)-1; i += 2 {
-		keyi := args[i]
-		if keyi == nil {
-			continue
-		}
-		key, _ := keyi.(string)
-		if key == "" {
-			continue
-		}
-		value := args[i+1]
-		if value == nil {
-			continue
-		}
-
-		if key == "_message" {
-			overridemsg, _ = value.(map[string]string)
-		}
-
-		if key == "_function_name" {
-			_funcname, _ = value.(string)
-		}
-
-		valtype := getValueType(value)
-
-		if !strings.HasPrefix(key, "_") {
-			outerr.Attrs[key] = &ErrorAttribute{Value: rawify(value), Type: valtype}
-		} else {
-			outerr.XHiddenAttrs[strings.TrimPrefix(key, "_")] = &ErrorAttribute{Value: rawify(value), Type: valtype}
-		}
-	}
-
-	if err != nil {
-		outerr.XHiddenAttrs["root"] = &ErrorAttribute{Value: err.Error(), Type: "string"}
-	}
-
-	stack, funcname, funcstack := GetStack(1)
-	outerr.Message = map[string]string{}
-	if len(codes) > 0 {
-		msg, has := ErrorTable[codes[0]]
-		if has {
-			outerr.Message["en_US"] = formatString(msg["en_US"], nil)
-			outerr.Message["vi_VN"] = formatString(msg["vi_VN"], nil)
-		}
-	}
-
-	// override message
-	for code, msg := range overridemsg {
-		outerr.Message[code] = msg
-	}
-
-	if _funcname != "" {
-		funcname = _funcname
-	}
-	if funcname != "" {
-		outerr.XHiddenAttrs["function_name"] = &ErrorAttribute{Value: funcname, Type: "string"}
-	}
-
-	// classified: database error, filesystem error, account access deny
-	// SBR-72BFD5F
-	// SBQ-A2BFD5F
-	prefix := "Q"
-	if retryable {
-		prefix = "R"
-	}
-	errid := strings.ToUpper(strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostname+"/"+funcstack+"/"+outerr.Code))), 16))
-	outerr.Number = "SB" + prefix + "-" + errid
-
-	span := trace.SpanFromContext(ctx)
-	outerr.TraceId = span.SpanContext().TraceID().String()
-	outerr.SpanId = span.SpanContext().SpanID().String()
-	outerr.XHiddenAttrs["server_name"] = &ErrorAttribute{Value: hostname, Type: "string"}
-	outerr.XHiddenAttrs["stack"] = &ErrorAttribute{Value: stack, Type: "string"}
-	return outerr
+	return newError(ctx, err, field, codes, 2)
 }
 
 // Error creates an error and report it to server
@@ -1469,6 +1041,7 @@ func Error3(accid string, err error, field M, codes ...E) *AError {
 	}
 
 	if field != nil && accid != "" {
+		field = copyErrorFields(field)
 		field["account_id"] = accid
 	}
 
@@ -1503,6 +1076,8 @@ func (e *AError) Clone() *AError {
 		Class:   e.Class,
 		Code:    e.Code,
 		Number:  e.Number,
+		TraceId: e.TraceId,
+		SpanId:  e.SpanId,
 		Message: e.Message,
 	}
 	if len(e.XHiddenAttrs) > 0 {

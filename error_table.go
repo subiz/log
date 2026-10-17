@@ -278,7 +278,7 @@ var ErrorTable = map[E]H{
 		"en_US": "You are not a member of this conversation. You need to be invited before continue this action",
 	},
 	"transform_data": H{
-		"vi_VN": "",
+		"vi_VN": "Đã xảy ra lỗi, vui lòng thử lại sau.",
 		"en_US": "Something wrong, please try again later",
 	},
 	"provider_failed": H{
@@ -334,7 +334,7 @@ var ErrorTable = map[E]H{
 		"en_US": "Your account had been locked",
 	},
 	"unauthorized": H{
-		"vi_VN": "Bạn không có đủ quyền. Để thực hiện chức năng này bạn cần thêm quyền {mising}",
+		"vi_VN": "Bạn không có đủ quyền. Để thực hiện chức năng này bạn cần thêm quyền {missing}",
 		"en_US": "You are not authorized. To perform this action you need following permission: {missing}",
 	},
 	"invalid_input": H{

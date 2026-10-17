@@ -161,6 +161,31 @@ const E_data_uri_requires_image E = "data_uri_requires_image"
 const E_invalid_upload_metadata E = "invalid_upload_metadata"
 const E_import_source_http_error E = "import_source_http_error"
 const E_import_source_timeout E = "import_source_timeout"
+const E_upload_session_expired E = "upload_session_expired"
+const E_upload_session_closed E = "upload_session_closed"
+
+func init() {
+	ErrorTable[E_upload_session_expired] = H{"en_US": "The upload session has expired.", "vi_VN": "Phiên tải lên đã hết hạn."}
+	ErrorTable[E_upload_session_closed] = H{"en_US": "The upload session is closed.", "vi_VN": "Phiên tải lên đã đóng."}
+}
+
+func EUploadSessionExpired(uploadID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["upload_id"] = uploadID
+	return Error3("", nil, field, E_upload_session_expired, E_invalid_input)
+}
+
+func EUploadSessionClosed(uploadID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["upload_id"] = uploadID
+	return Error3("", nil, field, E_upload_session_closed, E_invalid_input)
+}
 
 func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
 	var field = M{}

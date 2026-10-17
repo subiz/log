@@ -199,4 +199,50 @@ Traces:
 
 ### Development
 
-When you make change to `error.json`, make sure to run `node build.js`
+#### Thêm một error mới
+
+**Ưu tiên dùng lại hàm lỗi có sẵn. Chỉ tạo hàm mới khi lỗi có ý nghĩa riêng mà các hàm hiện tại không diễn đạt được.** Trước khi thêm, tìm trong `error.go` và `errors.json`, đọc cả tham số, mã lỗi và thông báo của các lỗi tương tự. Khác endpoint, service, tên trường hoặc ID chưa phải lý do để tạo thêm hàm; hãy truyền thông tin đó qua tham số hoặc `fields ...M`.
+
+Ví dụ, nếu chỉ cần báo tài nguyên không tồn tại hoặc giá trị trường không hợp lệ, cân nhắc dùng `ENotFound` / `EMissing` hoặc `EInvalidField`:
+
+```go
+return log.ENotFound(recordID, "record", log.M{"account_id": accid})
+// Hoặc, tại nơi kiểm tra giá trị trường:
+return log.EInvalidField(accid, "status", status)
+```
+
+Nếu thực sự cần lỗi mới, thực hiện đủ các bước sau:
+
+1. **Chọn tên theo bản chất lỗi.** Dùng tiền tố `E` và PascalCase, mô tả đối tượng và trạng thái/nguyên nhân, chẳng hạn `ERecordTypeNotEmpty`, hoặc `EInvalid<Field>` cho giá trị không hợp lệ. Tránh tên chung chung như `ECreateFailed`, tên gắn với endpoint hay chi tiết triển khai. Tên cần đủ rõ để nơi khác có thể tìm và dùng lại. Mã lỗi dùng `snake_case`, hằng số tương ứng là `E_<mã_lỗi>`; ví dụ `ERecordTypeNotEmpty` → `record_type_not_empty` → `E_record_type_not_empty`.
+
+2. **Thêm hằng số và hàm vào `error.go`.** Hàm trả về `*AError`, nhận các tham số cần thiết và `fields ...M` để bổ sung ngữ cảnh. Làm theo mẫu của hàm tương tự; khi gọi `Error3`, đặt mã lỗi cụ thể trước, rồi đến các mã phân loại có sẵn phù hợp. Mã đầu tiên được dùng để lấy thông báo trong `ErrorTable`. Ví dụ dưới đây là mẫu đã có trong dự án, không cần thêm lại:
+
+   ```go
+   const E_record_type_not_empty E = "record_type_not_empty"
+
+   func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
+       field := M{}
+       if len(fields) > 0 && fields[0] != nil {
+           field = fields[0]
+       }
+       field["record_type_id"] = recordTypeID
+       return Error3(accid, nil, field, E_record_type_not_empty, E_invalid_input)
+   }
+   ```
+
+3. **Thêm key vào `errors.json`.** Key phải trùng chính xác với giá trị mã lỗi trong `error.go`, có đủ `vi_VN` và `en_US`. Thông báo cần dễ hiểu với người dùng và hướng dẫn cách khắc phục nếu có. Ví dụ key tương ứng với hàm trên:
+
+   ```json
+   "record_type_not_empty": {
+     "vi_VN": "Không thể lưu trữ loại bản ghi vì vẫn còn bản ghi chưa xoá. Hãy xoá các bản ghi trước rồi thử lại.",
+     "en_US": "This record type cannot be archived while it still contains non-deleted records. Delete those records and try again."
+   }
+   ```
+
+4. **Chạy build từ thư mục gốc của repository** sau mỗi lần sửa `errors.json`:
+
+   ```sh
+   node build.js
+   ```
+
+   Có thể dùng `npm run build` tương đương. Lệnh này sinh lại `error_table.go`; không tự sinh hằng số hoặc hàm trong `error.go`. Không sửa trực tiếp `error_table.go`. Kiểm tra diff và commit cùng các thay đổi trong `error.go`, `errors.json` và `error_table.go`.

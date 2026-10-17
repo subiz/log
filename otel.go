@@ -406,3 +406,8 @@ func Track(ctx context.Context, code string, args ...any) {
 	stdoutlog(ctx, slog.LevelInfo, "TRK-"+code, wrapargs...)
 	logger.InfoContext(ctx, "TRK-"+code, wrapargs...)
 }
+
+// K create index key
+func K(key string) string {
+	return "key=" + key
+}

@@ -1,3 +1,4 @@
+
 /* GENERATED FILE, DO NOT EDIT */
 package log
 
@@ -75,6 +76,26 @@ var ErrorTable = map[E]H{
 	"invalid_tag_id": H{
 		"vi_VN": "Mã thẻ không hợp lệ.",
 		"en_US": "The tag ID is invalid.",
+	},
+	"invalid_pipeline_stage_category": H{
+		"vi_VN": "Phân loại của giai đoạn pipeline không hợp lệ.",
+		"en_US": "The pipeline stage category is invalid.",
+	},
+	"pipeline_stage_category_immutable": H{
+		"vi_VN": "Không thể thay đổi phân loại sau khi giai đoạn pipeline đã được tạo.",
+		"en_US": "The category cannot be changed after the pipeline stage is created.",
+	},
+	"pipeline_stage_category_required": H{
+		"vi_VN": "Pipeline phải còn ít nhất một giai đoạn thuộc nhóm {category}.",
+		"en_US": "The pipeline must retain at least one stage in the {category} category.",
+	},
+	"pipeline_update_in_progress": H{
+		"vi_VN": "Pipeline đang xoá giai đoạn và chưa thể nhận cập nhật khác.",
+		"en_US": "A pipeline stage deletion is in progress. The pipeline cannot be updated yet.",
+	},
+	"pipeline_stage_deleting": H{
+		"vi_VN": "Giai đoạn pipeline đang được xoá và không thể nhận thêm bản ghi.",
+		"en_US": "The pipeline stage is being deleted and cannot accept more records.",
 	},
 	"invalid_kb_handle": H{
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
@@ -395,5 +416,69 @@ var ErrorTable = map[E]H{
 	"zalo_zns_template_manage_quota_exceeded": H{
 		"vi_VN": "Number of template creation/editing or attachment uploads exceeds daily quota",
 		"en_US": "Số lượng tạo/edit template hoặc upload attachment vượt quá daily quota",
+	},
+	"request_canceled": H{
+		"vi_VN": "Yêu cầu đã bị hủy.",
+		"en_US": "The request was canceled.",
+	},
+	"upload_session_expired": H{
+		"vi_VN": "Phiên tải lên đã hết hạn.",
+		"en_US": "The upload session has expired.",
+	},
+	"upload_session_closed": H{
+		"vi_VN": "Phiên tải lên đã đóng.",
+		"en_US": "The upload session is closed.",
+	},
+	"upload_idempotency_conflict": H{
+		"vi_VN": "Khóa idempotency đã được dùng với dữ liệu tải lên khác.",
+		"en_US": "The idempotency key was used with different upload data.",
+	},
+	"upload_size_mismatch": H{
+		"vi_VN": "Kích thước tải lên không khớp kích thước đã khai báo.",
+		"en_US": "The uploaded size does not match the declared size.",
+	},
+	"invalid_file_checksum": H{
+		"vi_VN": "Mã kiểm tra toàn vẹn của file không hợp lệ.",
+		"en_US": "The verified file checksum is invalid.",
+	},
+	"blocked_file_extension": H{
+		"vi_VN": "Tên file chứa phần mở rộng bị chặn.",
+		"en_US": "The file name contains a blocked extension.",
+	},
+	"file_processing_failed": H{
+		"vi_VN": "Xử lý file thất bại.",
+		"en_US": "File processing failed.",
+	},
+	"file_processing_lease_lost": H{
+		"vi_VN": "Một tác vụ khác đã tiếp quản việc xử lý file.",
+		"en_US": "Another job has taken over file processing.",
+	},
+	"file_source_required": H{
+		"vi_VN": "Hãy sử dụng file gốc thay vì file dẫn xuất.",
+		"en_US": "Use the original file instead of its derivative.",
+	},
+	"file_type_mismatch": H{
+		"vi_VN": "Loại file không khớp loại được yêu cầu.",
+		"en_US": "The file type does not match the required type.",
+	},
+	"data_uri_requires_image": H{
+		"vi_VN": "Data URI phải chứa ảnh.",
+		"en_US": "The data URI must contain an image.",
+	},
+	"invalid_upload_metadata": H{
+		"vi_VN": "Bộ xử lý tải lên trả về metadata không hợp lệ.",
+		"en_US": "The upload processor returned invalid metadata.",
+	},
+	"import_source_http_error": H{
+		"vi_VN": "URL nhập file trả về mã HTTP không thành công.",
+		"en_US": "The import URL returned an unsuccessful HTTP status.",
+	},
+	"import_source_timeout": H{
+		"vi_VN": "Nguồn nhập file không phản hồi kịp thời.",
+		"en_US": "The import source did not respond in time.",
+	},
+	"invalid_service_config": H{
+		"vi_VN": "Cấu hình dịch vụ không hợp lệ.",
+		"en_US": "The service configuration is invalid.",
 	},
 }

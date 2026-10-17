@@ -142,6 +142,25 @@ const E_pipeline_stages_required E = "pipeline_stages_required"
 const E_invalid_pipeline_stage_id E = "invalid_pipeline_stage_id"
 const E_duplicate_pipeline_stage_id E = "duplicate_pipeline_stage_id"
 const E_invalid_tag_id E = "invalid_tag_id"
+const E_invalid_pipeline_stage_category E = "invalid_pipeline_stage_category"
+const E_pipeline_stage_category_immutable E = "pipeline_stage_category_immutable"
+const E_pipeline_stage_category_required E = "pipeline_stage_category_required"
+const E_pipeline_update_in_progress E = "pipeline_update_in_progress"
+const E_pipeline_stage_deleting E = "pipeline_stage_deleting"
+
+// CDN domain errors, classified by the source of the failure.
+const E_upload_idempotency_conflict E = "upload_idempotency_conflict"
+const E_upload_size_mismatch E = "upload_size_mismatch"
+const E_invalid_file_checksum E = "invalid_file_checksum"
+const E_blocked_file_extension E = "blocked_file_extension"
+const E_file_processing_failed E = "file_processing_failed"
+const E_file_processing_lease_lost E = "file_processing_lease_lost"
+const E_file_source_required E = "file_source_required"
+const E_file_type_mismatch E = "file_type_mismatch"
+const E_data_uri_requires_image E = "data_uri_requires_image"
+const E_invalid_upload_metadata E = "invalid_upload_metadata"
+const E_import_source_http_error E = "import_source_http_error"
+const E_import_source_timeout E = "import_source_timeout"
 
 func ERecordTypeNotEmpty(accid, recordTypeID string, fields ...M) *AError {
 	var field = M{}
@@ -325,6 +344,60 @@ func EInvalidTagID(accid, tagID string, fields ...M) *AError {
 	field["name"] = "tag_id"
 	field["value"] = tagID
 	return Error3(accid, nil, field, E_invalid_tag_id, E_invalid_field, E_invalid_input)
+}
+
+func EInvalidPipelineStageCategory(accid, pipelineID, pipelineStageID, category string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	field["category"] = category
+	field["name"] = "pipeline_stage.category"
+	field["value"] = category
+	return Error3(accid, nil, field, E_invalid_pipeline_stage_category, E_invalid_field, E_invalid_input)
+}
+
+func EPipelineStageCategoryImmutable(accid, pipelineID, pipelineStageID, currentCategory, requestedCategory string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	field["current_category"] = currentCategory
+	field["requested_category"] = requestedCategory
+	return Error3(accid, nil, field, E_pipeline_stage_category_immutable, E_invalid_input)
+}
+
+func EPipelineStageCategoryRequired(accid, pipelineID, category string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["category"] = category
+	return Error3(accid, nil, field, E_pipeline_stage_category_required, E_invalid_input)
+}
+
+func EPipelineUpdateInProgress(accid, pipelineID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	return Error3(accid, nil, field, E_pipeline_update_in_progress, E_invalid_input)
+}
+
+func EPipelineStageDeleting(accid, pipelineID, pipelineStageID string, fields ...M) *AError {
+	var field = M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["pipeline_id"] = pipelineID
+	field["pipeline_stage_id"] = pipelineStageID
+	return Error3(accid, nil, field, E_pipeline_stage_deleting, E_invalid_input)
 }
 
 func EInvalidUrl(accid, url string, fields ...M) *AError {
@@ -902,6 +975,115 @@ func EInactive(id, typ string, fields ...M) *AError {
 	field["type"] = typ
 	field["id"] = id
 	return Error3("", nil, field, E_inactive_resource)
+}
+
+func EUploadIdempotencyConflict(uploadID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["upload_id"] = uploadID
+	return Error3("", nil, field, E_upload_idempotency_conflict, E_invalid_input)
+}
+
+func EUploadSizeMismatch(expected, actual int64, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["expected_size"] = expected
+	field["actual_size"] = actual
+	return Error3("", nil, field, E_upload_size_mismatch, E_invalid_input)
+}
+
+func EInvalidFileChecksum(fileID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["file_id"] = fileID
+	return Error3("", nil, field, E_invalid_file_checksum, E_internal)
+}
+
+func EBlockedFileExtension(name string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["file_name"] = name
+	return Error3("", nil, field, E_blocked_file_extension, E_invalid_input)
+}
+
+func EFileProcessingFailed(fileID, causeCode string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["file_id"] = fileID
+	field["cause_code"] = causeCode
+	return Error3("", nil, field, E_file_processing_failed, E_internal)
+}
+
+func EFileProcessingLeaseLost(fileID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["file_id"] = fileID
+	return Error3("", nil, field, E_file_processing_lease_lost, E_internal, E_retryable)
+}
+
+func EFileSourceRequired(fileID string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["file_id"] = fileID
+	return Error3("", nil, field, E_file_source_required, E_invalid_input)
+}
+
+func EFileTypeMismatch(actual, requiredPrefix string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["mime_type"] = actual
+	field["required_type_prefix"] = requiredPrefix
+	return Error3("", nil, field, E_file_type_mismatch, E_invalid_input)
+}
+
+func EDataURIRequiresImage(mimeType string, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["mime_type"] = mimeType
+	return Error3("", nil, field, E_data_uri_requires_image, E_invalid_input)
+}
+
+func EInvalidUploadMetadata(fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error3("", nil, field, E_invalid_upload_metadata, E_internal)
+}
+
+func EImportSourceHTTPError(httpStatus int, fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	field["source_http_status"] = httpStatus
+	return Error3("", nil, field, E_import_source_http_error, E_invalid_input)
+}
+
+func EImportSourceTimeout(fields ...M) *AError {
+	field := M{}
+	if len(fields) > 0 && fields[0] != nil {
+		field = fields[0]
+	}
+	return Error3("", nil, field, E_import_source_timeout, E_invalid_input)
 }
 
 func IsErr(err error, code string) bool {

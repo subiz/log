@@ -71,6 +71,26 @@
 		"vi_VN": "Mã thẻ không hợp lệ.",
 		"en_US": "The tag ID is invalid."
 	},
+	"invalid_pipeline_stage_category": {
+		"vi_VN": "Phân loại của giai đoạn pipeline không hợp lệ.",
+		"en_US": "The pipeline stage category is invalid."
+	},
+	"pipeline_stage_category_immutable": {
+		"vi_VN": "Không thể thay đổi phân loại sau khi giai đoạn pipeline đã được tạo.",
+		"en_US": "The category cannot be changed after the pipeline stage is created."
+	},
+	"pipeline_stage_category_required": {
+		"vi_VN": "Pipeline phải còn ít nhất một giai đoạn thuộc nhóm {category}.",
+		"en_US": "The pipeline must retain at least one stage in the {category} category."
+	},
+	"pipeline_update_in_progress": {
+		"vi_VN": "Pipeline đang xoá giai đoạn và chưa thể nhận cập nhật khác.",
+		"en_US": "A pipeline stage deletion is in progress. The pipeline cannot be updated yet."
+	},
+	"pipeline_stage_deleting": {
+		"vi_VN": "Giai đoạn pipeline đang được xoá và không thể nhận thêm bản ghi.",
+		"en_US": "The pipeline stage is being deleted and cannot accept more records."
+	},
 	"invalid_kb_handle": {
 		"vi_VN": "Địa chỉ không hợp lệ, vui lòng chọn địa chỉ dài hơn 5 ký tự và chỉ chứa ký tự chữ cái latin, chữ số hoặc '-', '_'",
 		"en_US": "Invalid handle, please select a handle longer than 5 characters and containing only latin alphabetic characters, digits or '-', '_'"
@@ -397,5 +417,57 @@
 	"zalo_zns_template_manage_quota_exceeded": {
 		"vi_VN": "Number of template creation/editing or attachment uploads exceeds daily quota",
 		"en_US": "Số lượng tạo/edit template hoặc upload attachment vượt quá daily quota"
+	},
+	"request_canceled": {
+		"en_US": "The request was canceled.",
+		"vi_VN": "Yêu cầu đã bị hủy."
+	},
+	"upload_session_expired": {"en_US": "The upload session has expired.", "vi_VN": "Phiên tải lên đã hết hạn."},
+	"upload_session_closed": {"en_US": "The upload session is closed.", "vi_VN": "Phiên tải lên đã đóng."},
+	"upload_idempotency_conflict": {
+		"en_US": "The idempotency key was used with different upload data.",
+		"vi_VN": "Khóa idempotency đã được dùng với dữ liệu tải lên khác."
+	},
+	"upload_size_mismatch": {
+		"en_US": "The uploaded size does not match the declared size.",
+		"vi_VN": "Kích thước tải lên không khớp kích thước đã khai báo."
+	},
+	"invalid_file_checksum": {
+		"en_US": "The verified file checksum is invalid.",
+		"vi_VN": "Mã kiểm tra toàn vẹn của file không hợp lệ."
+	},
+	"blocked_file_extension": {
+		"en_US": "The file name contains a blocked extension.",
+		"vi_VN": "Tên file chứa phần mở rộng bị chặn."
+	},
+	"file_processing_failed": {"en_US": "File processing failed.", "vi_VN": "Xử lý file thất bại."},
+	"file_processing_lease_lost": {
+		"en_US": "Another job has taken over file processing.",
+		"vi_VN": "Một tác vụ khác đã tiếp quản việc xử lý file."
+	},
+	"file_source_required": {
+		"en_US": "Use the original file instead of its derivative.",
+		"vi_VN": "Hãy sử dụng file gốc thay vì file dẫn xuất."
+	},
+	"file_type_mismatch": {
+		"en_US": "The file type does not match the required type.",
+		"vi_VN": "Loại file không khớp loại được yêu cầu."
+	},
+	"data_uri_requires_image": {"en_US": "The data URI must contain an image.", "vi_VN": "Data URI phải chứa ảnh."},
+	"invalid_upload_metadata": {
+		"en_US": "The upload processor returned invalid metadata.",
+		"vi_VN": "Bộ xử lý tải lên trả về metadata không hợp lệ."
+	},
+	"import_source_http_error": {
+		"en_US": "The import URL returned an unsuccessful HTTP status.",
+		"vi_VN": "URL nhập file trả về mã HTTP không thành công."
+	},
+	"import_source_timeout": {
+		"en_US": "The import source did not respond in time.",
+		"vi_VN": "Nguồn nhập file không phản hồi kịp thời."
+	},
+	"invalid_service_config": {
+		"en_US": "The service configuration is invalid.",
+		"vi_VN": "Cấu hình dịch vụ không hợp lệ."
 	}
 }

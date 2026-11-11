@@ -13,27 +13,21 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
-	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
 var loggerProvider *sdklog.LoggerProvider
-var traceProvider *sdktrace.TracerProvider
 var logger *slog.Logger
-var tracer trace.Tracer
+var tracer = noop.NewTracerProvider().Tracer("")
 var logServerHost string
 var logServerSecret string
 
-// otelDisabled reports whether OpenTelemetry tracing/log export should be
-// turned off for this process. Set the standard OTEL_SDK_DISABLED=true to opt
-// out — in that mode no spans are recorded/exported and error/log reports are
-// delivered to /collect/ (the same lightweight pipeline used by log.Err)
-// instead of the OTLP /v1/logs endpoint. Defaults to enabled so other services
-// keep full OpenTelemetry unchanged.
+// otelDisabled reports whether OTLP log export is disabled. In that mode,
+// error/log reports use /collect/ instead of /v1/logs. Distributed tracing
+// is always disabled, independently of this setting.
 func otelDisabled() bool {
 	return strings.EqualFold(os.Getenv("OTEL_SDK_DISABLED"), "true")
 }
@@ -60,13 +54,11 @@ func init() {
 		}()
 	}
 
+	// The log server only accepts logs. Keep existing instrumentation safe to
+	// call without recording spans or creating a trace exporter.
+	otel.SetTracerProvider(noop.NewTracerProvider())
+
 	if otelDisabled() {
-		// Lightweight mode: leave the global TracerProvider as a no-op so that
-		// instrumentation (e.g. otelgrpc) creates non-recording spans and does
-		// not allocate or export anything. Error/log reports go to /collect/
-		// via collectHandler instead of the OTLP /v1/logs endpoint.
-		tracer = noop.NewTracerProvider().Tracer("")
-		otel.SetTracerProvider(noop.NewTracerProvider())
 		logger = slog.New(&collectHandler{})
 		return
 	}
@@ -74,9 +66,6 @@ func init() {
 	loggerProvider = newLoggerProvider(nil)
 	scope := ""
 	logger = slog.New(otelslog.NewHandler(scope, otelslog.WithLoggerProvider(loggerProvider)))
-	traceProvider = newTraceProvider()
-	tracer = traceProvider.Tracer("")
-	otel.SetTracerProvider(traceProvider)
 }
 
 var defaultsloghandler = slog.Default().Handler()
@@ -85,11 +74,6 @@ func Shutdown() {
 	// Lightweight mode has no OTLP providers to flush; just drain /collect/.
 	if loggerProvider != nil {
 		if err := loggerProvider.Shutdown(context.Background()); err != nil {
-			fmt.Println(err)
-		}
-	}
-	if traceProvider != nil {
-		if err := traceProvider.Shutdown(context.Background()); err != nil {
 			fmt.Println(err)
 		}
 	}
@@ -113,35 +97,6 @@ func (h *collectHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func (h *collectHandler) WithGroup(_ string) slog.Handler { return h }
-
-func newTraceProvider() *sdktrace.TracerProvider {
-	opts := []sdktrace.TracerProviderOption{}
-
-	// stdoutexporter, _ := stdouttrace.New()
-	// opts = append(opts, sdktrace.WithBatcher(stdoutexporter))
-
-	if logServerSecret != "" {
-		httpexporter, err := otlptracehttp.New(context.Background(),
-			otlptracehttp.WithEndpointURL(logServerHost+"/v1/traces"),
-			otlptracehttp.WithHeaders(map[string]string{"secret": logServerSecret}))
-		if err != nil {
-			panic(err)
-		}
-		opts = append(opts, sdktrace.WithBatcher(httpexporter))
-	}
-
-	// Ensure default SDK resources and the required service name are set.
-	r, err := resource.Merge(
-		resource.Default(),
-		resource.NewWithAttributes("", attribute.String("host.name", hostname)),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	opts = append(opts, sdktrace.WithResource(r))
-	return sdktrace.NewTracerProvider(opts...)
-}
 
 func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 	defres, err := resource.Merge(resource.Default(),
@@ -306,14 +261,13 @@ func SetSpanAttributes(ctx context.Context, attrs ...any) {
 // func  With(args ...any) *Logger {}
 // func  WithGroup(name string) *Logger {}
 
-// ctx, span := log.Start(ctx, "funcname")
-// defer span.End()
+// Start returns a non-recording span for compatibility with existing callers.
+// It does not create or export a distributed trace.
 func Start(ctx context.Context, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	_, spanName, _ := GetStack(-1)
-	return tracer.Start(ctx, spanName, opts...)
+	return tracer.Start(ctx, "", opts...)
 }
 
 func addStack(ctx context.Context, args []any) []any {
@@ -380,17 +334,6 @@ func Track(ctx context.Context, code string, args ...any) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-
-	// force sample
-	spanContext := trace.SpanContextFromContext(ctx)
-	if ctx == nil {
-		spanContext = trace.NewSpanContext(trace.SpanContextConfig{})
-	}
-
-	ctx = trace.ContextWithSpanContext(ctx,
-		spanContext.WithTraceFlags(spanContext.TraceFlags().WithSampled(true)))
-	ctx, span := tracer.Start(ctx, "track-"+code)
-	defer span.End()
 
 	wrapargs := []any{}
 

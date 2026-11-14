@@ -66,8 +66,7 @@ func Info(v ...any) error {
 			v = v[1:]
 		}
 		args := addStack(ctx, v)
-		stdoutlog(ctx, slog.LevelInfo, msg, args...)
-		logger.InfoContext(ctx, msg, args...)
+		emit(ctx, slog.LevelInfo, msg, args...)
 		return nil
 	case string:
 		accid = t

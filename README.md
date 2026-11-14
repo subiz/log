@@ -1,95 +1,138 @@
-## log
-OpenTelemetry logging only. This package does not record or export distributed
-traces and never sends requests to `/v1/traces`, regardless of trace sampler
-settings. `Start` returns a non-recording span for compatibility with existing
-callers; `Track` continues to emit a regular log event.
+# log
 
-Logs and errors still use `/v1/logs` (or `/collect/` when
-`OTEL_SDK_DISABLED=true`). Set `LOG_SERVER_HOST` and `LOG_SERVER_SECRET` before
-starting the process. Services must update their dependency/vendor copy and
-rebuild to pick up this change.
+Thư viện ghi log và xử lý lỗi dùng chung cho Subiz. Go ghi log ra console và gửi
+qua OTLP HTTP tại `/v1/logs`; package JavaScript cung cấp thông báo lỗi và hàm
+thay thế placeholder. Thư viện không tạo hoặc xuất distributed trace.
 
-## Usage
-```go
-package main
+## Cấu hình
 
-import "github.com/subiz/log"
+Đặt biến môi trường trước khi khởi động ứng dụng:
 
-func main() {
-	log.Init(APIKEY, "", nil)
-	defer log.Shutdown() // prevent missing log when crash
+| Biến | Ý nghĩa | Mặc định |
+| --- | --- | --- |
+| `LOG_SERVER_HOST` | URL gốc của máy chủ nhận log | `https://log.subiz.net` |
+| `LOG_SERVER_SECRET` | Secret gửi trong HTTP header `secret`; để trống thì chỉ ghi console | Trống |
+| `LOG_HOSTNAME` | Ghi đè tên máy chủ trong log | `os.Hostname()` |
 
-	log.Info("ac123", "this is a log message", "cid", "cs123")
+`service.name` lấy phần hostname trước dấu `-` đầu tiên. Ví dụ,
+`zaloperson-75fb677958-65dz6` có tên dịch vụ là `zaloperson`.
+`OTEL_SDK_DISABLED` không tắt luồng gửi log của package này.
 
-	var err error
-	log.Err("ac123", err, "this is an err", "cid", "cs123")
+Các API dùng chung hàng đợi OTLP tối đa 100.000 bản ghi, gửi tối đa 100 bản ghi
+mỗi batch, theo chu kỳ 2 giây hoặc sớm hơn khi đủ batch.
 
-	err := log.Error(ctx, baseerr, "key1", "value1", "key2", 123)
-
-	log.InfoContext(ctx, "message", "key1", "value1", "key2", 123)
-}
-
-```
-
-Use Info to log info, use Err to log error.
-Pass account_id to the first parameter to partition the log stream. It helps you grep log more effeciently.
+## Ghi log
 
 ```go
 package main
 
 import (
     "context"
+    "errors"
+
     "github.com/subiz/log"
 )
 
-func parent(ctx context.Context) {
-    ctx, span := log.Start(ctx)
-    defer span.End()
-
-    log.SetAttributes(span, "isTrue", true, "stringAttr", "hi!")
-	// same as
-	span.SetAttributes(attribute.Bool("isTrue", true), attribute.String("stringAttr", "hi!"))
-
-    child(ctx)
-}
-
-func child(ctx context.Context) {
-    ctx, span := log.Start(ctx)
-    defer span.End()
-
-	log.InfoContext(ctx, "hello", "11111111", "22222222", "333", 4)
-}
-
 func main() {
     defer log.Shutdown()
+    ctx := context.Background()
 
-    ctx, span := log.Start(context.Background())
-	defer span.End()
-
-	parent(ctx)
+    log.InfoContext(ctx, "request received", "account_id", "ac123", "cid", "cs123")
+    log.WarnContext(ctx, "request is slow", "account_id", "ac123")
+    log.Error(ctx, errors.New("database connection refused"), "internal,retryable",
+        "account_id", "ac123")
 }
-
-```
-Output:
-```bash
-2025/01/24 17:18:42 INFO hello world user-id=string user-count=1995 _stacktrace="/home/thanh/src/log/trace_test.go:25 | /home/thanh/src/log/trace_test.go:18 | /home/thanh/src/log/trace_test.go:34"
 ```
 
-### Development
+Truyền `account_id` trực tiếp trong thuộc tính để phân loại log theo tài khoản.
+Các API nhận context dùng console handler hiện tại của `slog.Default()` và tuân
+theo mức log của handler đó (mặc định là Info). `Error` ghi cả lỗi có cấu trúc,
+nguyên nhân và stack ra console và OTLP, đồng thời trả về `*AError`.
 
-#### Tra cứu hàm lỗi có sẵn
+API cũ `Info(accountID, ...)` và `Err(accountID, err, ...)` vẫn dùng được, giữ
+định dạng console riêng và gửi qua cùng hàng đợi OTLP. `Err` bỏ qua lỗi nil.
+`Track(ctx, code, ...)` ghi một sự kiện log với tiền tố `TRK-`.
 
-Ưu tiên chọn hàm theo ý nghĩa lỗi trong bảng dưới đây trước khi tạo hàm mới. Đây là các hàm phổ biến; xem `error.go` để tìm thêm các lỗi nghiệp vụ cụ thể. Cột mã lỗi liệt kê mã chính trước, rồi đến các mã phân loại.
+`Start` trả về span không ghi dữ liệu để tương thích với caller cũ. Các hàm
+`SetAttributes` và `SetSpanAttributes` không thay thế thuộc tính log; hãy truyền
+thuộc tính vào từng lời gọi ghi log.
 
-Các hàm trong bảng đều nhận thêm `fields ...M` ở cuối để bổ sung ngữ cảnh, ví dụ `log.M{"account_id": accid, "record_id": recordID}`. Các hàm chỉ đọc map đầu tiên và sao chép map trước khi thêm thuộc tính; chúng không sửa map của bên gọi. Các giá trị bên trong map không được sao chép sâu. Thuộc tính có tiền tố `_` dành cho dữ liệu nội bộ và không được đưa vào `ToJSON()` trả cho người dùng.
+## Dừng ứng dụng
+
+Thư viện không tự bắt SIGINT/SIGTERM. Ứng dụng cần dừng và chờ các worker hoàn
+thành trước khi gọi shutdown để gửi hết log đang chờ:
+
+- `Shutdown()` chờ tối đa 10 giây và in lỗi ra stderr.
+- `ShutdownContext(ctx)` dùng thời hạn của caller và trả về lỗi.
+
+Nếu hết thời gian, một số log có thể chưa được gửi; gọi shutdown lần nữa không
+thử lại. Dùng context mới cho shutdown vì context nhận signal đã bị huỷ:
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "os/signal"
+    "syscall"
+    "time"
+
+    "github.com/subiz/log"
+)
+
+func main() {
+    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+    defer stop()
+
+    log.InfoContext(ctx, "service started")
+    <-ctx.Done()
+    stop() // Khôi phục xử lý signal mặc định trong lúc shutdown.
+    // Dừng và chờ các worker của ứng dụng tại đây.
+
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+    defer cancel()
+    if err := log.ShutdownContext(shutdownCtx); err != nil {
+        fmt.Fprintln(os.Stderr, "log shutdown:", err)
+    }
+}
+```
+
+## Xử lý lỗi
+
+Các hàm `E...` dưới đây tạo lỗi **và ghi log** qua `Error3`. Nếu chỉ muốn tạo hoặc
+bọc lỗi, dùng `NewError(base, fields, codes...)` hoặc
+`NewError2(ctx, base, codes, key, value, ...)`.
+
+`IsErr` và các hàm tạo lỗi nhận được `AError` trong chuỗi bọc bằng `%w`. `Unwrap`
+giữ nguyên nhân cho `errors.Is`/`errors.As` trong cùng process; nguyên nhân dạng
+Go không được serialize. Khi bọc lỗi:
+
+- Mã lỗi được gộp không trùng; thêm `internal` cập nhật `Class` thành 500.
+- Thêm `retryable` đổi tiền tố số lỗi từ `SBQ-` sang `SBR-`.
+- ID, phần hash, thông báo và trace của lỗi gốc được giữ lại. `NewError2` chỉ lấy
+  trace từ context khi tạo lỗi mới.
+
+### Tra cứu hàm có sẵn
+
+Chọn hàm theo ý nghĩa lỗi trước khi tạo hàm mới. Bảng liệt kê các hàm phổ biến;
+xem [error.go](error.go) để tìm lỗi nghiệp vụ cụ thể. Mã chính đứng trước các mã
+phân loại.
+
+Các hàm đều nhận thêm `fields ...M`, ví dụ
+`log.M{"account_id": accid, "record_id": recordID}`. Chỉ map đầu tiên được dùng
+và được sao chép trước khi thêm thuộc tính; giá trị bên trong không được sao
+chép sâu. Thuộc tính có tiền tố `_` vẫn được ghi log nhưng không xuất hiện trong
+`ToJSON()` trả cho người dùng.
 
 | Nhóm | Hàm và tham số chính | Khi nào dùng | Mã lỗi |
 | --- | --- | --- | --- |
-| Validation | `EInvalidField(accid, name, value string)` | Giá trị của một trường không hợp lệ | `invalid_field`, `invalid_input` |
-| Validation | `EInvalidInput(base error, required_fields []string, internal_message string)` | Đầu vào không đáp ứng yêu cầu, cần nêu các trường bắt buộc | `invalid_input` |
-| Validation | `EInvalidInputFormat(base error, fieldname, currentvalue, msg string)` | Giá trị sai định dạng | `invalid_input_format`, `invalid_input` |
-| Validation | `EInvalidUrl(accid, url string)` | URL không hợp lệ | `invalid_url`, `invalid_input` |
-| Validation | `EPayloadTooLarge(curSize, maxSize int64)` | Dữ liệu vượt kích thước cho phép | `payload_too_large`, `invalid_input` |
+| Đầu vào | `EInvalidField(accid, name, value string)` | Giá trị của một trường không hợp lệ | `invalid_field`, `invalid_input` |
+| Đầu vào | `EInvalidInput(base error, required_fields []string, internal_message string)` | Đầu vào không đáp ứng yêu cầu, cần nêu các trường bắt buộc | `invalid_input` |
+| Đầu vào | `EInvalidInputFormat(base error, fieldname, currentvalue, msg string)` | Giá trị sai định dạng | `invalid_input_format`, `invalid_input` |
+| Đầu vào | `EInvalidUrl(accid, url string)` | URL không hợp lệ | `invalid_url`, `invalid_input` |
+| Đầu vào | `EPayloadTooLarge(curSize, maxSize int64)` | Dữ liệu vượt kích thước cho phép | `payload_too_large`, `invalid_input` |
 | Giới hạn | `ELimitExceeded(capacity int64)` | Vượt hạn mức | `limit_exceeded`, `invalid_input` |
 | Giới hạn | `ERateLimit()` | Gửi yêu cầu quá nhanh | `rate_limit`, `limit_exceeded`, `invalid_input` |
 | Tài nguyên | `ENotFound(id, typ string)` / `EMissing(id, typ string)` | Không tìm thấy tài nguyên; hai hàm dùng cùng mã lỗi | `missing_resource` |
@@ -103,27 +146,44 @@ Các hàm trong bảng đều nhận thêm `fields ...M` ở cuối để bổ s
 | Hệ thống | `EServiceUnavailable(err error)` | Dịch vụ tạm thời không sẵn sàng | `service_unavailable`, `internal`, `retryable` |
 | Hệ thống | `EInternalConnect(base error)` | Lỗi kết nối nội bộ | `internal_connection`, `internal` |
 | Hệ thống | `EFS(base error, path string)` | Lỗi hệ thống file | `file_system_error`, `internal` |
-| Provider | `EProvider(base error, external_service, action string)` | Lỗi từ dịch vụ bên ngoài | `provider_failed`, `internal` |
+| Dịch vụ ngoài | `EProvider(base error, external_service, action string)` | Lỗi từ dịch vụ bên ngoài | `provider_failed`, `internal` |
 
-Các hàm `E...` trên tạo lỗi **và ghi log** qua `Error3`. Nếu chỉ muốn tạo hoặc bọc lỗi, dùng `NewError(base, fields, codes...)` hoặc `NewError2(ctx, base, codes, key, value, ...)`. `NewError2` nhận các cặp key/value và gắn thông tin trace từ context khi tạo lỗi mới; khi bọc `AError` có sẵn, giữ thông tin trace của lỗi gốc.
+## JavaScript
 
-#### Thêm một error mới
+```js
+const { messages, format } = require('@subiz/log')
 
-**Ưu tiên dùng lại hàm lỗi có sẵn. Chỉ tạo hàm mới khi lỗi có ý nghĩa riêng mà các hàm hiện tại không diễn đạt được.** Trước khi thêm, tìm trong `error.go` và `errors.json`, đọc cả tham số, mã lỗi và thông báo của các lỗi tương tự. Khác endpoint, service, tên trường hoặc ID chưa phải lý do để tạo thêm hàm; hãy truyền thông tin đó qua tham số hoặc `fields ...M`.
+const message = messages.invalid_field.vi_VN
+console.log(format(message, { name: 'email', value: 'invalid' }))
+```
 
-Ví dụ, nếu chỉ cần báo tài nguyên không tồn tại hoặc giá trị trường không hợp lệ, cân nhắc dùng `ENotFound` / `EMissing` hoặc `EInvalidField`:
+`messages` chứa bản dịch `vi_VN` và `en_US` từ `errors.json`. `format` thay
+placeholder dạng `{name}` bằng giá trị tương ứng. Placeholder thiếu dữ liệu
+hoặc chưa đóng dấu `}` được giữ nguyên; `data` có thể bỏ qua hoặc là `null`.
+
+## Phát triển
+
+### Thêm lỗi mới
+
+Ưu tiên dùng lại hàm có sẵn. Khác endpoint, service, tên trường hoặc ID chưa phải
+lý do tạo thêm hàm; truyền ngữ cảnh qua tham số hoặc `fields ...M`:
 
 ```go
 return log.ENotFound(recordID, "record", log.M{"account_id": accid})
-// Hoặc, tại nơi kiểm tra giá trị trường:
-return log.EInvalidField(accid, "status", status)
 ```
 
-Nếu thực sự cần lỗi mới, thực hiện đủ các bước sau:
+Nếu cần lỗi có ý nghĩa riêng, kiểm tra [error.go](error.go) và
+[errors.json](errors.json), rồi thực hiện các bước sau:
 
-1. **Chọn tên theo bản chất lỗi.** Dùng tiền tố `E` và PascalCase, mô tả đối tượng và trạng thái/nguyên nhân, chẳng hạn `ERecordTypeNotEmpty`, hoặc `EInvalid<Field>` cho giá trị không hợp lệ. Tránh tên chung chung như `ECreateFailed`, tên gắn với endpoint hay chi tiết triển khai. Tên cần đủ rõ để nơi khác có thể tìm và dùng lại. Mã lỗi dùng `snake_case`, hằng số tương ứng là `E_<mã_lỗi>`; ví dụ `ERecordTypeNotEmpty` → `record_type_not_empty` → `E_record_type_not_empty`.
+1. **Chọn tên theo bản chất lỗi.** Hàm dùng tiền tố `E` và PascalCase; mã lỗi
+   dùng `snake_case`, hằng số là `E_<mã_lỗi>`. Ví dụ: `ERecordTypeNotEmpty`,
+   `record_type_not_empty`, `E_record_type_not_empty`. Tránh tên chung chung như
+   `ECreateFailed` hoặc tên gắn với endpoint.
 
-2. **Thêm hằng số và hàm vào `error.go`.** Hàm trả về `*AError`, nhận các tham số cần thiết và `fields ...M` để bổ sung ngữ cảnh. Làm theo mẫu của hàm tương tự; khi gọi `Error3`, đặt mã lỗi cụ thể trước, rồi đến các mã phân loại có sẵn phù hợp. Mã đầu tiên được dùng để lấy thông báo trong `ErrorTable`. Ví dụ dưới đây là mẫu đã có trong dự án, không cần thêm lại:
+2. **Thêm hằng số và hàm vào `error.go`.** Hàm trả về `*AError`, nhận tham số
+   cần thiết và `fields ...M`. Sao chép map bằng `copyErrorFields`, gọi `Error3`
+   với mã cụ thể trước rồi đến mã phân loại. Mã đầu tiên quyết định thông báo
+   trong `ErrorTable`. Mẫu đã có trong repo:
 
    ```go
    const E_record_type_not_empty E = "record_type_not_empty"
@@ -135,21 +195,38 @@ Nếu thực sự cần lỗi mới, thực hiện đủ các bước sau:
    }
    ```
 
-3. **Thêm key vào `errors.json`.** Key phải trùng chính xác với giá trị mã lỗi trong `error.go`, có đủ `vi_VN` và `en_US`. Thông báo cần dễ hiểu với người dùng và hướng dẫn cách khắc phục nếu có. Ví dụ key tương ứng với hàm trên:
+3. **Thêm bản dịch vào `errors.json`.** Key trùng với mã lỗi, có đủ `vi_VN` và
+   `en_US`, dùng cùng bộ placeholder. Thông báo cần dễ hiểu và hướng dẫn cách
+   khắc phục nếu có. Ví dụ entry tương ứng với hàm trên:
 
    ```json
-   "record_type_not_empty": {
-     "vi_VN": "Không thể lưu trữ loại bản ghi vì vẫn còn bản ghi chưa xoá. Hãy xoá các bản ghi trước rồi thử lại.",
-     "en_US": "This record type cannot be archived while it still contains non-deleted records. Delete those records and try again."
+   {
+     "record_type_not_empty": {
+       "vi_VN": "Không thể lưu trữ loại bản ghi vì vẫn còn bản ghi chưa xoá. Hãy xoá các bản ghi trước rồi thử lại.",
+       "en_US": "This record type cannot be archived while it still contains non-deleted records. Delete those records and try again."
+     }
    }
    ```
 
-4. **Chạy build từ thư mục gốc của repository** sau mỗi lần sửa `errors.json`:
+4. **Sinh lại bảng thông báo** từ thư mục gốc sau mỗi lần sửa `errors.json`:
 
    ```sh
-   node build.js
+   npm run build
    ```
 
-   Có thể dùng `npm run build` tương đương. Build kiểm tra mã lỗi theo `snake_case`, đủ hai bản dịch không rỗng và bộ placeholder giống nhau giữa hai ngôn ngữ (ví dụ cùng dùng `{name}`). Build tự escape ký tự đặc biệt khi sinh chuỗi Go; nếu dữ liệu không hợp lệ, lệnh báo key cần sửa và không ghi đè bảng hiện tại.
+   Build kiểm tra mã `snake_case`, bản dịch không rỗng và bộ placeholder giống
+   nhau, rồi escape chuỗi và sinh `error_table.go`. Dữ liệu không hợp lệ sẽ báo
+   lỗi trước khi ghi đè file. Build không sinh hằng số hoặc hàm trong `error.go`.
+   Không sửa trực tiếp `error_table.go`; kiểm tra diff và commit cùng các thay
+   đổi trong `error.go`, `errors.json` và `error_table.go`.
 
-   Lệnh này sinh lại `error_table.go`; không tự sinh hằng số hoặc hàm trong `error.go`. Không sửa trực tiếp `error_table.go`. Kiểm tra diff và commit cùng các thay đổi trong `error.go`, `errors.json` và `error_table.go`.
+### Kiểm tra
+
+```sh
+LOG_SERVER_SECRET= go test -race ./...
+go vet ./...
+npm test
+```
+
+Go và JavaScript dùng chung bộ kiểm thử formatter trong
+[testdata/format.json](testdata/format.json).

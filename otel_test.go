@@ -2,8 +2,10 @@ package log_test
 
 import (
 	"context"
-	"encoding/base64"
+	"errors"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,24 +22,36 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// A fresh process exercises package init with a configured log destination,
-// independently of other tests calling Shutdown on the global logger.
+// A fresh process exercises package init with each destination and environment.
 func TestLogsWithoutTraceExport(t *testing.T) {
 	if os.Getenv("SUBIZ_LOG_TEST_CHILD") == "1" {
 		runLogsWithoutTraces(t)
 		return
 	}
 	for _, mode := range []struct {
-		name, sampler, disabled, path string
+		name, sampler, disabled, path, hostname string
 	}{
 		{name: "default", path: "/v1/logs"},
 		{name: "always_on", sampler: "always_on", path: "/v1/logs"},
-		{name: "collect", sampler: "always_on", disabled: "true", path: "/collect/"},
+		{name: "pod_hostname", hostname: "zaloperson-75fb677958-65dz6", path: "/v1/logs"},
+		{name: "replica_hostname", hostname: "convo-1", path: "/v1/logs"},
+		{name: "sdk_disabled", sampler: "always_on", disabled: "true", path: "/v1/logs"},
 	} {
 		t.Run(mode.name, func(t *testing.T) {
 			var mu sync.Mutex
 			paths := map[string]int{}
 			var messages []string
+			var batches []int
+			var legacyCount int
+			wantHost := mode.hostname
+			if wantHost == "" {
+				var err error
+				wantHost, err = os.Hostname()
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			wantService := strings.Split(wantHost, "-")[0]
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				mu.Lock()
 				defer mu.Unlock()
@@ -56,24 +70,45 @@ func TestLogsWithoutTraceExport(t *testing.T) {
 						w.WriteHeader(400)
 						return
 					}
+					batchSize := 0
 					for _, resource := range request.ResourceLogs {
+						attrs := map[string]string{}
+						for _, attr := range resource.GetResource().GetAttributes() {
+							attrs[attr.Key] = attr.Value.GetStringValue()
+						}
+						if attrs["host.name"] != wantHost || attrs["service.name"] != wantService {
+							t.Errorf("resource identity: host=%q service=%q; want host=%q service=%q", attrs["host.name"], attrs["service.name"], wantHost, wantService)
+						}
 						for _, scope := range resource.ScopeLogs {
 							for _, record := range scope.LogRecords {
 								messages = append(messages, record.Body.GetStringValue())
+								batchSize++
+								attrs := map[string]string{}
+								for _, attr := range record.Attributes {
+									attrs[attr.Key] = attr.Value.GetStringValue()
+								}
+								body := record.Body.GetStringValue()
+								if strings.Contains(body, "legacy-") {
+									legacyCount++
+									if attrs["account_id"] != "test-account" || attrs["_stack"] == "" || attrs["server_name"] != wantHost {
+										t.Errorf("missing legacy metadata: %v", attrs)
+									}
+									if strings.Contains(body, "legacy-error") && record.SeverityNumber < 17 {
+										t.Error("lost error severity")
+									}
+								}
+								if body == "TRK-track-probe" && (attrs["log_type"] != "track" || attrs["_stack"] == "") {
+									t.Error("lost tracking metadata")
+								}
+								if body == "plain-error-probe" && record.SeverityNumber != 17 {
+									t.Error("lost plain error severity")
+								}
+
 							}
 						}
 					}
+					batches = append(batches, batchSize)
 					w.Header().Set("Content-Type", "application/x-protobuf")
-				case "/collect/":
-					for _, line := range strings.Fields(string(body)) {
-						decoded, err := base64.StdEncoding.DecodeString(line)
-						if err != nil {
-							t.Error(err)
-							w.WriteHeader(400)
-							return
-						}
-						messages = append(messages, string(decoded))
-					}
 				default:
 					http.NotFound(w, r)
 					return
@@ -89,12 +124,12 @@ func TestLogsWithoutTraceExport(t *testing.T) {
 			defer cancel()
 			cmd := exec.CommandContext(ctx, exe, "-test.run=^TestLogsWithoutTraceExport$")
 			for _, entry := range os.Environ() {
-				if !strings.HasPrefix(entry, "LOG_SERVER_") && !strings.HasPrefix(entry, "OTEL_") && !strings.HasPrefix(entry, "SUBIZ_LOG_TEST_CHILD=") {
+				if !strings.HasPrefix(entry, "LOG_SERVER_") && !strings.HasPrefix(entry, "LOG_HOSTNAME=") && !strings.HasPrefix(entry, "OTEL_") && !strings.HasPrefix(entry, "SUBIZ_LOG_TEST_CHILD=") {
 					cmd.Env = append(cmd.Env, entry)
 				}
 			}
 			cmd.Env = append(cmd.Env, "SUBIZ_LOG_TEST_CHILD=1", "LOG_SERVER_HOST="+server.URL,
-				"LOG_SERVER_SECRET=local-test", "OTEL_TRACES_SAMPLER="+mode.sampler, "OTEL_SDK_DISABLED="+mode.disabled)
+				"LOG_SERVER_SECRET=local-test", "LOG_HOSTNAME="+mode.hostname, "OTEL_TRACES_SAMPLER="+mode.sampler, "OTEL_SDK_DISABLED="+mode.disabled)
 			if output, err := cmd.CombinedOutput(); err != nil {
 				t.Fatalf("child failed: %v\n%s", err, output)
 			}
@@ -103,8 +138,26 @@ func TestLogsWithoutTraceExport(t *testing.T) {
 			if len(paths) != 1 || paths[mode.path] == 0 {
 				t.Fatalf("unexpected export destinations: %v", paths)
 			}
+			if legacyCount != 3 {
+				t.Errorf("legacy logs=%d, want 3", legacyCount)
+			}
+			if len(messages) != 211 {
+				t.Errorf("records=%d, want 211 (no losses or duplicates)", len(messages))
+			}
+			var sawFullBatch bool
+			for _, size := range batches {
+				if size > 100 {
+					t.Errorf("oversized batch: %d", size)
+				}
+				if size == 100 {
+					sawFullBatch = true
+				}
+			}
+			if !sawFullBatch {
+				t.Errorf("no full batch: %v", batches)
+			}
 			joined := strings.Join(messages, "\n")
-			for _, want := range []string{"ordinary-log-probe", "TRK-track-probe", "error-probe"} {
+			for _, want := range []string{"ordinary-log-probe", "TRK-track-probe", "error-probe", "legacy-info", "legacy-error", "plain-error-probe", "warn-probe", "attrs-probe"} {
 				if !strings.Contains(joined, want) {
 					t.Errorf("missing %q in exported logs: %s", want, joined)
 				}
@@ -131,6 +184,16 @@ func runLogsWithoutTraces(t *testing.T) {
 		}
 		globalSpan.End()
 		span.End()
+	}
+	log.Info("test-account", "legacy-info")
+	log.Err("test-account", errors.New("legacy-error"))
+	log.Error3("test-account", errors.New("legacy-error3"), nil)
+	log.Info(context.Background(), "context-info-probe")
+	log.ErrorContext(context.Background(), "plain-error-probe")
+	log.WarnContext(context.Background(), "warn-probe")
+	log.LogAttrs(context.Background(), slog.LevelError, "attrs-probe", slog.String("key", "value"))
+	for i := 0; i < 201; i++ {
+		log.InfoContext(context.Background(), fmt.Sprintf("batch-probe-%d", i))
 	}
 	log.InfoContext(context.Background(), "ordinary-log-probe")
 	log.Track(nil, "track-probe")

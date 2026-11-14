@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"log/slog"
@@ -34,6 +35,8 @@ type ErrorAttribute struct {
 }
 
 type AError struct {
+	cause error
+
 	Id      string            `json:"id,omitempty"`
 	Class   int32             `json:"class,omitempty"`  // remove http-code, should be derived from code
 	Code    string            `json:"code,omitempty"`   // should be general database_error, access_deny
@@ -826,8 +829,8 @@ func EImportSourceTimeout(fields ...M) *AError {
 }
 
 func IsErr(err error, code string) bool {
-	myerr, ok := err.(*AError)
-	if !ok {
+	var myerr *AError
+	if !errors.As(err, &myerr) || myerr == nil {
 		return false
 	}
 	codes := strings.Split(myerr.Code, ",")
@@ -849,8 +852,8 @@ func NewError(err error, field M, codes ...E) *AError {
 // stackSkip compensates for this helper and each constructor's caller convention.
 func newError(ctx context.Context, err error, field M, codes []E, stackSkip int) *AError {
 	if err != nil {
-		mye, ok := err.(*AError)
-		if !ok {
+		var mye *AError
+		if !errors.As(err, &mye) {
 			// casting to err failed
 			// dont give up yet, fallback to json
 			errstr := err.Error()
@@ -868,6 +871,7 @@ func newError(ctx context.Context, err error, field M, codes []E, stackSkip int)
 
 		// our error
 		if mye != nil {
+			mye.cause = err
 			for key, value := range field {
 				if key == "" {
 					continue
@@ -887,41 +891,31 @@ func newError(ctx context.Context, err error, field M, codes []E, stackSkip int)
 				}
 			}
 
-			// append codes once, after all fields are merged. Doing this
-			// inside the field loop duplicates every code per field.
-			codestr := mye.Code
-			for _, code := range codes {
-				if codestr == "" {
-					codestr = string(code)
-					continue
-				}
-				codestr += "," + string(code)
+			mye.Code = mergeErrorCodes(mye.Code, codes)
+			if IsErr(mye, string(E_internal)) {
+				mye.Class = 500
 			}
-			mye.Code = codestr
+			// Keep the originating error's grouping hash, but reflect retryability.
+			if IsErr(mye, string(E_retryable)) && strings.HasPrefix(mye.Number, "SBQ-") {
+				mye.Number = "SBR-" + strings.TrimPrefix(mye.Number, "SBQ-")
+			}
 			return mye
 		}
 	}
 
-	outerr := &AError{Id: toBase58(time.Now().Unix()/3600) + toBase58(rand.Int64())}
+	outerr := &AError{Id: toBase58(time.Now().Unix()/3600) + toBase58(rand.Int64()), cause: err}
 	// backward compatible, remove in future
 	outerr.Class = 400
-	codestr := ""
 	retryable := false
-	for i, code := range codes {
+	for _, code := range codes {
 		if code == E_retryable {
 			retryable = true
 		}
 		if code == E_internal {
 			outerr.Class = 500
 		}
-
-		if i == 0 {
-			codestr = string(code)
-			continue
-		}
-		codestr += "," + string(code)
 	}
-	outerr.Code = codestr
+	outerr.Code = mergeErrorCodes("", codes)
 	outerr.Attrs = map[string]*ErrorAttribute{}
 	outerr.XHiddenAttrs = map[string]*ErrorAttribute{}
 
@@ -994,6 +988,9 @@ func newError(ctx context.Context, err error, field M, codes []E, stackSkip int)
 // Error creates an error and report it to server
 // If you dont want to report it, use NewError instead
 func Error(ctx context.Context, err error, code string, args ...any) *AError {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	codestrs := strings.Split(code, ",")
 	codes := []E{}
 	for _, codestr := range codestrs {
@@ -1006,15 +1003,12 @@ func Error(ctx context.Context, err error, code string, args ...any) *AError {
 		span.SetStatus(otelcodes.Error, outerr.Error())
 	}
 
-	// args = addStack(ctx, args)
-
 	args = append(args, "log_type")
 	args = append(args, "error")
 
 	b, _ := json.Marshal(outerr)
 
-	stdoutlog(ctx, slog.LevelError, "error", args...)
-	logger.ErrorContext(ctx, string(b), args...)
+	emit(ctx, slog.LevelError, string(b), args...)
 	return outerr
 }
 
@@ -1072,6 +1066,7 @@ func (e *AError) Clone() *AError {
 	}
 
 	clone := &AError{
+		cause:   e.cause,
 		Id:      e.Id,
 		Class:   e.Class,
 		Code:    e.Code,
@@ -1096,6 +1091,33 @@ func (e *AError) Clone() *AError {
 		clone.Attrs = newAttrs
 	}
 	return clone
+}
+
+// Unwrap preserves the in-process error chain for errors.Is and errors.As.
+// The cause is not serialized; decoded errors retain only their JSON metadata.
+func (e *AError) Unwrap() error {
+	if e == nil {
+		return nil
+	}
+	return e.cause
+}
+
+func mergeErrorCodes(existing string, extra []E) string {
+	codes := make([]string, 0, len(extra)+1)
+	seen := map[string]bool{}
+	appendCode := func(code string) {
+		if code != "" && !seen[code] {
+			seen[code] = true
+			codes = append(codes, code)
+		}
+	}
+	for _, code := range strings.Split(existing, ",") {
+		appendCode(code)
+	}
+	for _, code := range extra {
+		appendCode(string(code))
+	}
+	return strings.Join(codes, ",")
 }
 
 // Error returns string representation of an Error

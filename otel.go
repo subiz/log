@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
-	"strings"
 	"time"
 
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -25,12 +23,7 @@ var tracer = noop.NewTracerProvider().Tracer("")
 var logServerHost string
 var logServerSecret string
 
-// otelDisabled reports whether OTLP log export is disabled. In that mode,
-// error/log reports use /collect/ instead of /v1/logs. Distributed tracing
-// is always disabled, independently of this setting.
-func otelDisabled() bool {
-	return strings.EqualFold(os.Getenv("OTEL_SDK_DISABLED"), "true")
-}
+const maxQueuedLogRecords = 100_000
 
 func init() {
 	logServerHost = os.Getenv("LOG_SERVER_HOST")
@@ -38,69 +31,43 @@ func init() {
 		logServerHost = "https://log.subiz.net"
 	}
 	logServerSecret = os.Getenv("LOG_SERVER_SECRET")
-	if logServerSecret != "" {
-		go func() {
-			for {
-				time.Sleep(2 * time.Second)
-				flushLog()
-			}
-		}()
-
-		go func() {
-			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-			<-ctx.Done()
-			flushLog()
-			stop()
-		}()
-	}
-
 	// The log server only accepts logs. Keep existing instrumentation safe to
 	// call without recording spans or creating a trace exporter.
 	otel.SetTracerProvider(noop.NewTracerProvider())
-
-	if otelDisabled() {
-		logger = slog.New(&collectHandler{})
-		return
-	}
 
 	loggerProvider = newLoggerProvider(nil)
 	scope := ""
 	logger = slog.New(otelslog.NewHandler(scope, otelslog.WithLoggerProvider(loggerProvider)))
 }
 
-var defaultsloghandler = slog.Default().Handler()
-
+// Shutdown drains pending logs with a 10-second deadline. Applications own
+// signal handling; use ShutdownContext to choose a deadline and handle errors.
 func Shutdown() {
-	// Lightweight mode has no OTLP providers to flush; just drain /collect/.
-	if loggerProvider != nil {
-		if err := loggerProvider.Shutdown(context.Background()); err != nil {
-			fmt.Println(err)
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := ShutdownContext(ctx); err != nil {
+		fmt.Fprintln(os.Stderr, err)
 	}
-	flushLog()
 }
 
-// collectHandler is an slog.Handler that queues records for delivery to the
-// /collect/ endpoint instead of exporting them as OpenTelemetry logs. It keeps
-// error/info reporting working without any OTLP/tracing dependency.
-type collectHandler struct {
-	attrs []slog.Attr
+// ShutdownContext drains the shared OTLP queue and stops exporting logs.
+// Stop log producers before calling it. A canceled context may leave logs unsent;
+// subsequent calls do not retry shutdown. A nil context uses context.Background.
+func ShutdownContext(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if loggerProvider == nil {
+		return nil
+	}
+	return loggerProvider.Shutdown(ctx)
 }
-
-func (h *collectHandler) Enabled(_ context.Context, _ slog.Level) bool { return true }
-
-func (h *collectHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	na := make([]slog.Attr, 0, len(h.attrs)+len(attrs))
-	na = append(na, h.attrs...)
-	na = append(na, attrs...)
-	return &collectHandler{attrs: na}
-}
-
-func (h *collectHandler) WithGroup(_ string) slog.Handler { return h }
 
 func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 	defres, err := resource.Merge(resource.Default(),
-		resource.NewWithAttributes("", attribute.String("host.name", hostname)))
+		resource.NewWithAttributes("",
+			attribute.String("host.name", hostname),
+			attribute.String("service.name", w.service)))
 	if err != nil {
 		panic(err)
 	}
@@ -116,109 +83,65 @@ func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 		if err != nil {
 			panic(err)
 		}
-		opts = append(opts, sdklog.WithProcessor(sdklog.NewBatchProcessor(httpexporter)))
+		opts = append(opts, sdklog.WithProcessor(sdklog.NewBatchProcessor(httpexporter,
+			sdklog.WithExportMaxBatchSize(100),
+			sdklog.WithExportInterval(2*time.Second),
+			sdklog.WithMaxQueueSize(maxQueuedLogRecords),
+		)))
 	}
 
-	// stdoutexporter := &slogExporter{}
-	// opts = append(opts, log.WithProcessor(log.NewBatchProcessor(stdoutexporter)))
 	return sdklog.NewLoggerProvider(opts...)
-}
-
-func (h *collectHandler) Handle(_ context.Context, r slog.Record) error {
-	if logServerSecret == "" {
-		return nil
-	}
-
-	level := "LOG"
-	if r.Level >= slog.LevelError {
-		level = "ERROR"
-	}
-
-	accid := "subiz"
-	caller := "-"
-	var msg strings.Builder
-	msg.WriteString(r.Message)
-
-	appendAttr := func(a slog.Attr) {
-		switch a.Key {
-		case "account_id":
-			if s := a.Value.String(); s != "" {
-				accid = s
-			}
-		case "_stack":
-			// keep only the closest frame as the caller column; the full
-			// stack is already embedded in error payloads.
-			if s := a.Value.String(); s != "" {
-				if i := strings.Index(s, " | "); i >= 0 {
-					caller = s[:i]
-				} else {
-					caller = s
-				}
-			}
-		default:
-			msg.WriteByte(' ')
-			msg.WriteString(a.Key)
-			msg.WriteByte('=')
-			msg.WriteString(a.Value.String())
-		}
-	}
-	for _, a := range h.attrs {
-		appendAttr(a)
-	}
-	r.Attrs(func(a slog.Attr) bool {
-		appendAttr(a)
-		return true
-	})
-
-	line := r.Time.Format("06-01-02 15:04:05") + " app " + level + " " + hostname + " " + accid + " " + caller + " " + msg.String()
-
-	logmaplock.Lock()
-	if len(logmap) < LIMIT_LOG_MAP_LENGTH {
-		logmap = append(logmap, line)
-	}
-	logmaplock.Unlock()
-	return nil
 }
 
 func DebugContext(ctx context.Context, msg string, args ...any) {
 	args = addStack(ctx, args)
-	stdoutlog(ctx, slog.LevelDebug, msg, args...)
-	logger.DebugContext(ctx, msg, args...)
+	emit(ctx, slog.LevelDebug, msg, args...)
 }
 
-// log is the low-level logging method for methods that take ...any.
-// It must always be called directly by an exported logging method
-// or function, because it uses a fixed call depth to obtain the pc.
-func stdoutlog(ctx context.Context, level slog.Level, msg string, args ...any) {
-	var pc uintptr
-	r := slog.NewRecord(time.Now(), level, msg, pc)
-	r.Add(args...)
+// emit sends the same message and attributes to the console and OTLP.
+func emit(ctx context.Context, level slog.Level, msg string, args ...any) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	_ = defaultsloghandler.Handle(ctx, r)
+	stdoutlog(ctx, level, msg, args...)
+	logger.Log(ctx, level, msg, args...)
+}
+
+func stdoutlog(ctx context.Context, level slog.Level, msg string, args ...any) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	handler := slog.Default().Handler()
+	if !handler.Enabled(ctx, level) {
+		return
+	}
+	r := slog.NewRecord(time.Now(), level, msg, 0)
+	r.Add(args...)
+	_ = handler.Handle(ctx, r)
 }
 
 func ErrorContext(ctx context.Context, msg string, args ...any) {
 	args = addStack(ctx, args)
-	stdoutlog(ctx, slog.LevelError, msg, args...)
-	logger.ErrorContext(ctx, msg, args...)
+	emit(ctx, slog.LevelError, msg, args...)
 }
 
 func InfoContext(ctx context.Context, msg string, args ...any) {
 	args = addStack(ctx, args)
-	stdoutlog(ctx, slog.LevelInfo, msg, args...)
-	logger.InfoContext(ctx, msg, args...)
+	emit(ctx, slog.LevelInfo, msg, args...)
 }
 
 func LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.Attr) {
-	// args = addStack(ctx, args)
-	logger.LogAttrs(ctx, level, msg, attrs...)
+	args := make([]any, 0, len(attrs)+2)
+	for _, attr := range attrs {
+		args = append(args, attr)
+	}
+	args = addStack(ctx, args)
+	emit(ctx, level, msg, args...)
 }
 
 func WarnContext(ctx context.Context, msg string, args ...any) {
 	args = addStack(ctx, args)
-	logger.WarnContext(ctx, msg, args...)
+	emit(ctx, slog.LevelWarn, msg, args...)
 }
 
 func SetAttributes(span trace.Span, attrs ...any) {
@@ -346,8 +269,7 @@ func Track(ctx context.Context, code string, args ...any) {
 	wrapargs = append(wrapargs, "function_name", funcname)
 	wrapargs = append(wrapargs, "server_name", hostname)
 
-	stdoutlog(ctx, slog.LevelInfo, "TRK-"+code, wrapargs...)
-	logger.InfoContext(ctx, "TRK-"+code, wrapargs...)
+	emit(ctx, slog.LevelInfo, "TRK-"+code, wrapargs...)
 }
 
 // K create index key

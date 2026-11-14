@@ -15,6 +15,7 @@ function isAlphabet(r) {
 }
 
 function format(s, data) {
+	data = data ?? {}
 	let i = 0
 	let output = ''
 
@@ -33,13 +34,17 @@ function format(s, data) {
 					param += s[j]
 					j++
 				}
+				// An unfinished placeholder stays literal, matching the Go formatter.
+				if (j == s.length) {
+					return output + ESCCHAR + param
+				}
 				if (param.length > 0) {
 					if (!isAlphabet(s[j])) {
 						output += ESCCHAR + param.substr(0, param.length - 1)
 						j--
 					} else {
 						let v = data[param]
-						if (v == undefined) {
+						if (!Object.prototype.hasOwnProperty.call(data, param) || v == undefined) {
 							// no key ->
 							output += ESCCHAR + param
 							if (j >= s.length) {

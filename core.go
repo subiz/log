@@ -8,7 +8,9 @@
 package log
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net"
 	"os"
 	"strings"
@@ -80,7 +82,6 @@ type Writer struct {
 	conn net.Conn
 }
 
-
 // Close closes a connection to the syslog daemon.
 func (w *Writer) Close() error {
 	w.mu.Lock()
@@ -116,19 +117,23 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 	fmt.Fprintf(os.Stdout, "<%d>%s %s %s[%s]: %s| %s%s",
 		thep, timestamp, w.hostname, accid, w.service, caller, msg, nl)
 
-	if logServerSecret != "" {
-		level := "LOG"
-		if p == LOG_ERR {
-			level = "ERROR"
-		}
-
-		line := now.Format("06-01-02 15:04:05") + " app " + level + " " + w.hostname + " " + accid + " " + caller + " " + msg
-		logmaplock.Lock()
-		if len(logmap) < LIMIT_LOG_MAP_LENGTH {
-			logmap = append(logmap, line)
-		}
-		logmaplock.Unlock()
+	// Legacy calls share the same structured OTLP queue as context-based calls.
+	level := slog.LevelInfo
+	switch p & severityMask {
+	case LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR:
+		level = slog.LevelError
+	case LOG_WARNING:
+		level = slog.LevelWarn
+	case LOG_DEBUG:
+		level = slog.LevelDebug
 	}
+	stack, function, _ := GetStack(0)
+	attrs := []any{"account_id", accid, "accid", accid, "server_name", w.hostname,
+		"_stack", stack, "function_name", function}
+	if level >= slog.LevelError {
+		attrs = append(attrs, "log_type", "error")
+	}
+	logger.Log(context.Background(), level, msg, attrs...)
 
 	if w.conn == nil {
 		return 0, nil

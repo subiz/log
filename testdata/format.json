@@ -1,0 +1,20 @@
+[
+  {"name":"substitution","template":"hi {name}","data":{"name":"thanh"},"expected":"hi thanh"},
+  {"name":"literal replacement","template":"hi {name}","data":{"name":"{name}thanh"},"expected":"hi {name}thanh"},
+  {"name":"escaped and nested braces","template":"hi {{name{name}}","data":{"name":"thanh"},"expected":"hi {namethanh}"},
+  {"name":"multiple fields","template":"conversation_started.account.{account_id}.user.{user_id}","data":{"account_id":"1","user_id":"2","client_id":"3"},"expected":"conversation_started.account.1.user.2"},
+  {"name":"null data","template":"hi {name2}","data":null,"expected":"hi {name2}"},
+  {"name":"omitted data","template":"hi {name}","expected":"hi {name}"},
+  {"name":"escaped placeholder","template":"hi {{name2} alo","data":null,"expected":"hi {name2} alo"},
+  {"name":"unfinished escaped placeholder","template":"hi {{name2","data":null,"expected":"hi {name2"},
+  {"name":"unfinished known placeholder","template":"hi {name","data":{"name":"thanh"},"expected":"hi {name"},
+  {"name":"unfinished missing placeholder","template":"hi {name","data":{},"expected":"hi {name"},
+  {"name":"lone opening brace","template":"hi {","data":null,"expected":"hi {"},
+  {"name":"space in placeholder","template":"hi {name2 {name}","data":{"name":"thanh"},"expected":"hi {name2 thanh"},
+  {"name":"trailing text","template":"hi {name2 {name}$s","data":{"name":"thanh"},"expected":"hi {name2 thanh$s"},
+  {"name":"invalid characters","template":"hi {name2#{name$s","data":{"name":"thanh"},"expected":"hi {name2#{name$s"},
+  {"name":"nested placeholder","template":"hi {name{name}$v","data":{"name":"thanh"},"expected":"hi {namethanh$v"},
+  {"name":"unicode","template":"Xin chào {name} 👋","data":{"name":"Thành"},"expected":"Xin chào Thành 👋"},
+  {"name":"falsy values","template":"{count} {enabled} {text}","data":{"count":0,"enabled":false,"text":""},"expected":"0 false "},
+  {"name":"inherited properties are not fields","template":"{constructor} {toString}","data":{},"expected":"{constructor} {toString}"}
+]

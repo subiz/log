@@ -116,6 +116,15 @@ func Stack() string {
 	return stack
 }
 
+// infoStack keeps the three closest visible frames in informational logs.
+func infoStack(stack string) string {
+	frames := strings.SplitN(stack, " | ", 4)
+	if len(frames) <= 3 {
+		return stack
+	}
+	return strings.Join(frames[:3], " | ")
+}
+
 // isIgnorePath indicates whether a path is just noise, that excluding the path does not
 // affect error context
 func isIgnorePath(path string) bool {

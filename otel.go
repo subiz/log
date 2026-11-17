@@ -94,7 +94,7 @@ func newLoggerProvider(res *resource.Resource) *sdklog.LoggerProvider {
 }
 
 func DebugContext(ctx context.Context, msg string, args ...any) {
-	args = addStack(ctx, args)
+	args = addStack(ctx, args, slog.LevelDebug)
 	emit(ctx, slog.LevelDebug, msg, args...)
 }
 
@@ -121,12 +121,12 @@ func stdoutlog(ctx context.Context, level slog.Level, msg string, args ...any) {
 }
 
 func ErrorContext(ctx context.Context, msg string, args ...any) {
-	args = addStack(ctx, args)
+	args = addStack(ctx, args, slog.LevelError)
 	emit(ctx, slog.LevelError, msg, args...)
 }
 
 func InfoContext(ctx context.Context, msg string, args ...any) {
-	args = addStack(ctx, args)
+	args = addStack(ctx, args, slog.LevelInfo)
 	emit(ctx, slog.LevelInfo, msg, args...)
 }
 
@@ -135,12 +135,12 @@ func LogAttrs(ctx context.Context, level slog.Level, msg string, attrs ...slog.A
 	for _, attr := range attrs {
 		args = append(args, attr)
 	}
-	args = addStack(ctx, args)
+	args = addStack(ctx, args, level)
 	emit(ctx, level, msg, args...)
 }
 
 func WarnContext(ctx context.Context, msg string, args ...any) {
-	args = addStack(ctx, args)
+	args = addStack(ctx, args, slog.LevelWarn)
 	emit(ctx, slog.LevelWarn, msg, args...)
 }
 
@@ -193,8 +193,11 @@ func Start(ctx context.Context, opts ...trace.SpanStartOption) (context.Context,
 	return tracer.Start(ctx, "", opts...)
 }
 
-func addStack(ctx context.Context, args []any) []any {
+func addStack(ctx context.Context, args []any, level slog.Level) []any {
 	stack, _, _ := GetStack(0)
+	if level == slog.LevelInfo {
+		stack = infoStack(stack)
+	}
 	args = append(args, "_stack")
 	args = append(args, stack)
 	return args

@@ -65,7 +65,7 @@ func Info(v ...any) error {
 			msg = fmt.Sprintf("%v", v[0])
 			v = v[1:]
 		}
-		args := addStack(ctx, v)
+		args := addStack(ctx, v, slog.LevelInfo)
 		emit(ctx, slog.LevelInfo, msg, args...)
 		return nil
 	case string:

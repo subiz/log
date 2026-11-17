@@ -53,6 +53,9 @@ API cũ `Info(accountID, ...)` và `Err(accountID, err, ...)` vẫn dùng đư�
 định dạng console riêng và gửi qua cùng hàng đợi OTLP. `Err` bỏ qua lỗi nil.
 `Track(ctx, code, ...)` ghi một sự kiện log với tiền tố `TRK-`.
 
+`Info`, `InfoContext` và `LogAttrs` mức Info chỉ gửi 3 frame stack gần chỗ gọi
+nhất. `Track` và error giữ nguyên stack hiện tại (thu thập tối đa 10 frame).
+
 `Start` trả về span không ghi dữ liệu để tương thích với caller cũ. Các hàm
 `SetAttributes` và `SetSpanAttributes` không thay thế thuộc tính log; hãy truyền
 thuộc tính vào từng lời gọi ghi log.

@@ -128,6 +128,9 @@ func (w *Writer) writeAndRetry(accid string, p Priority, msg string) (int, error
 		level = slog.LevelDebug
 	}
 	stack, function, _ := GetStack(0)
+	if level == slog.LevelInfo {
+		stack = infoStack(stack)
+	}
 	attrs := []any{"account_id", accid, "accid", accid, "server_name", w.hostname,
 		"_stack", stack, "function_name", function}
 	if level >= slog.LevelError {
